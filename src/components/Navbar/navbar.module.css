@@ -1,0 +1,54 @@
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 32px;
+    align-items: center;
+    background-color: #fff;
+    box-shadow: 0 0 6px 2px rgba(0, 0, 0, 0.25);
+}
+
+.items ul {
+    display: flex;
+    list-style-type: none;
+    gap: 50px;
+}
+
+.items ul li a {
+    text-decoration: none;
+    color: black;
+    padding: 20px;
+    transition: background .25s;
+    border-radius: 10px;
+}
+
+.items ul li a:hover {
+    background-color: rgba(0, 0, 0, 0.068);
+}
+
+.logo {
+    height: 100px;
+}
+
+.profile {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    color: gray;
+}
+
+.profileImg {
+    border-radius: 100%;
+    border: 2px gray solid;
+    width: 46px;
+    height: 46px;
+}
+
+.profileImg img {
+    width: 46px;
+    height: 46px;
+    border-radius: 100%;
+}
+
+.exitIcon{
+    cursor: pointer;
+}
