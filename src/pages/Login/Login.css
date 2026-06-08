@@ -25,9 +25,7 @@
   min-height: 100vh;
 }
 
-/* ==========================================================================
-   LADO ESQUERDO: FORMULÁRIO
-   ========================================================================== */
+
 .lado-formulario {
   width: 45%;
   min-height: 100vh;
@@ -45,57 +43,6 @@
   flex-direction: column;
 }
 
-/* Identidade / Logo */
-.cabecalho-marca {
-  display: flex;
-  flex-direction: row;
-  gap: 12px;
-  align-items: center;
-  margin-bottom: 36px;
-}
-
-.fundo-icone-marca {
-  background: linear-gradient(
-    135deg,
-    rgba(232, 213, 209, 1) 0%,
-    rgba(212, 197, 226, 1) 100%
-  );
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-}
-
-.icone-marca {
-  width: 20px;
-  height: 20px;
-}
-
-.texto-marca {
-  display: flex;
-  flex-direction: column;
-}
-
-.etiqueta-studio {
-  color: #999999;
-  font-family: "Inter-Regular", sans-serif;
-  font-size: 10.4px;
-  line-height: 13px;
-  letter-spacing: 1.87px;
-  font-weight: 400;
-  text-transform: uppercase;
-}
-
-.nome-marca {
-  color: #2c2c2c;
-  font-family: "Inter-Regular", sans-serif;
-  font-size: 16px;
-  line-height: 20px;
-  letter-spacing: 0.32px;
-  font-weight: 400;
-}
 
 /* Títulos */
 .cabecalho-login {
@@ -124,7 +71,7 @@
   font-weight: 500;
 }
 
-/* Estrutura do Form */
+
 .formulario-login {
   display: flex;
   flex-direction: column;
@@ -185,7 +132,7 @@
   pointer-events: none;
 }
 
-/* Botão de mostrar/ocultar senha */
+
 .botao-alternar-senha {
   display: flex;
   align-items: center;
@@ -206,7 +153,7 @@
   height: 16px;
 }
 
-/* Esqueci minha senha */
+
 .container-esqueci-senha {
   display: flex;
   justify-content: flex-end;
@@ -222,7 +169,7 @@
   text-decoration: none;
 }
 
-/* Botão Entrar */
+
 .botao-enviar {
   background: #d97960;
   border-radius: 14px;
@@ -249,7 +196,6 @@
   font-weight: 500;
 }
 
-/* Redirecionamento de Cadastro */
 .bloco-cadastro {
   display: flex;
   align-items: center;
@@ -272,9 +218,7 @@
   text-decoration: none;
 }
 
-/* ==========================================================================
-   LADO DIREITO: BANNER VISUAL
-   ========================================================================== */
+
 .lado-banner {
   background: linear-gradient(
     145deg,
@@ -331,9 +275,7 @@
   z-index: 2;
 }
 
-/* ==========================================================================
-   RESPONSIVIDADE (MOBILE / TABLET)
-   ========================================================================== */
+
 @media (max-width: 900px) {
   .lado-banner {
     display: none;

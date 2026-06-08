@@ -1,0 +1,67 @@
+.lado-banner {
+  background: linear-gradient(
+    145deg,
+    rgba(240, 230, 224, 1) 0%,
+    rgba(230, 223, 245, 1) 55%,
+    rgba(212, 197, 226, 1) 100%
+  );
+  width: 55%;
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.padrao-banner {
+  opacity: 0.12;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.circulo-decorativo-baixo {
+  background: #d97960;
+  border-radius: 50%;
+  opacity: 0.2;
+  width: 288px;
+  height: 288px;
+  position: absolute;
+  right: -60px;
+  bottom: -60px;
+}
+
+.circulo-decorativo-cima {
+  background: #d4c5e2;
+  border-radius: 50%;
+  opacity: 0.15;
+  width: 224px;
+  height: 224px;
+  position: absolute;
+  left: -64px;
+  top: -64px;
+}
+
+.logo-banner {
+  width: 70%;
+  max-width: 448px;
+  height: auto;
+  position: relative;
+  z-index: 2;
+}
+
+
+@media (max-width: 900px) {
+  .lado-banner {
+    display: none;
+  }
+  
+  .lado-formulario {
+    width: 100%;
+    padding: 60px 24px;
+  }
+}
