@@ -41,6 +41,7 @@ export default function Cadastro() {
     }
     
     console.log('Cadastro solicitado:', { nome, email, senha });
+    
   };
 
   return (
