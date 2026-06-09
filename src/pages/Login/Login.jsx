@@ -16,6 +16,14 @@ import { LogoTitulo } from "../../components/LoginCadastro/LogoTitulo";
   function setValorExibirSenha(){
     setExibirSenha(!exibirSenha)
   }
+    const executarLogin = (event) => {
+    event.preventDefault();
+    
+    
+    
+    
+    console.log('Login solicitado:', { email, senha });
+  };
 
   return (
   <div className="tela-login">
@@ -35,7 +43,7 @@ import { LogoTitulo } from "../../components/LoginCadastro/LogoTitulo";
                 <h1 className="titulo-login">Entrar no sistema</h1>
               </div>
               
-              <form className="formulario-login" >
+              <form className="formulario-login" onSubmit={executarLogin}>
                 
            
                 <div className="grupo-campo">
@@ -86,8 +94,9 @@ import { LogoTitulo } from "../../components/LoginCadastro/LogoTitulo";
                   </a>
                 </div>
 
-                <button type="submit" className="botao-enviar">
+                <button type="submit" className="botao-enviar" >
                   <span className="texto-botao-enviar">Entrar</span>
+
                 </button>
               </form>
               
