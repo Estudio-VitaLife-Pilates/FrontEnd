@@ -1,33 +1,33 @@
-.tela-login,
-.tela-login * {
+.tela-cadastro,
+.tela-cadastro * {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-.tela-login {
-  background: #ffffff;
+.tela-cadastro {
+  background: #faf7f5;
   display: flex;
   flex-direction: column;
   width: 100%;
   min-height: 100vh;
 }
 
-.corpo-login {
+.corpo-cadastro {
   display: flex;
   flex-direction: column;
   width: 100%;
   flex: 1;
 }
 
-.app-login {
+.app-cadastro {
   background: #faf7f5;
   display: flex;
   width: 100%;
-  min-height: 100vh;
 }
 
-
 .lado-formulario {
-  width: 45%;
+  width: 50%;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -43,25 +43,29 @@
   flex-direction: column;
 }
 
+/* Identidade / Logo */
 
-.cabecalho-login {
+
+/* Títulos */
+.cabecalho-cadastro {
   display: flex;
   flex-direction: column;
   gap: 6px;
   margin-bottom: 32px;
 }
 
-.etiqueta-restrita {
+.etiqueta-acesso {
   color: #999999;
   font-family: "Inter-Regular", sans-serif;
   font-size: 11.2px;
   line-height: 16.8px;
   letter-spacing: 2.02px;
   font-weight: 400;
+  padding-top: 10px;
   text-transform: uppercase;
 }
 
-.titulo-login {
+.titulo-cadastro {
   color: #2c2c2c;
   font-family: "Poppins-Medium", sans-serif;
   font-size: 28px;
@@ -70,8 +74,16 @@
   font-weight: 500;
 }
 
+.subtitulo-cadastro {
+  color: #999999;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+}
 
-.formulario-login {
+
+.formulario-cadastro {
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -111,10 +123,15 @@
   color: #2c2c2c;
   outline: none;
   transition: border-color 0.2s ease;
+  background-color: #ffffff;
 }
 
 .input-senha {
   padding-right: 44px;
+}
+
+.input-formulario::placeholder {
+  color: #717182;
 }
 
 .input-formulario:focus {
@@ -153,28 +170,12 @@
 }
 
 
-.container-esqueci-senha {
-  display: flex;
-  justify-content: flex-end;
-  width: 100%;
-  margin-top: -4px;
-}
-
-.link-esqueci-senha {
-  color: #d97960;
-  font-family: "Inter-Medium", sans-serif;
-  font-size: 13.12px;
-  font-weight: 500;
-  text-decoration: none;
-}
-
-
 .botao-enviar {
   background: #d97960;
   border-radius: 14px;
   width: 100%;
   height: 48px;
-  margin-top: 8px;
+  margin-top: 12px;
   box-shadow: 0px 4px 16px 0px rgba(217, 121, 96, 0.35);
   display: flex;
   align-items: center;
@@ -192,94 +193,48 @@
   color: #ffffff;
   font-family: "Inter-Medium", sans-serif;
   font-size: 14px;
+  line-height: 20px;
   font-weight: 500;
 }
 
-.bloco-cadastro {
+
+.bloco-login {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
   margin-top: 32px;
-}
-
-.texto-cadastro {
-  color: #999999;
-  font-family: "Inter-Regular", sans-serif;
   font-size: 13.6px;
 }
 
-.link-cadastro {
+.texto-login {
+  color: #999999;
+  font-family: "Inter-Regular", sans-serif;
+}
+
+.link-login {
   color: #d97960;
   font-family: "Inter-Medium", sans-serif;
-  font-size: 14px;
   font-weight: 500;
+  font-size: 14px;
   text-decoration: none;
 }
 
 
-.lado-banner {
-  background: linear-gradient(
-    145deg,
-    rgba(240, 230, 224, 1) 0%,
-    rgba(230, 223, 245, 1) 55%,
-    rgba(212, 197, 226, 1) 100%
-  );
-  width: 55%;
-  min-height: 100vh;
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.rodape-direitos {
+  margin-top: 48px;
+  text-align: center;
 }
 
-.padrao-banner {
-  opacity: 0.12;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  position: absolute;
-  left: 0;
-  top: 0;
-}
-
-.circulo-decorativo-baixo {
-  background: #d97960;
-  border-radius: 50%;
-  opacity: 0.2;
-  width: 288px;
-  height: 288px;
-  position: absolute;
-  right: -60px;
-  bottom: -60px;
-}
-
-.circulo-decorativo-cima {
-  background: #d4c5e2;
-  border-radius: 50%;
-  opacity: 0.15;
-  width: 224px;
-  height: 224px;
-  position: absolute;
-  left: -64px;
-  top: -64px;
-}
-
-.logo-banner {
-  width: 70%;
-  max-width: 448px;
-  height: auto;
-  position: relative;
-  z-index: 2;
+.texto-rodape {
+  color: #999999;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 12.5px;
+  line-height: 18.72px;
 }
 
 
 @media (max-width: 900px) {
-  .lado-banner {
-    display: none;
-  }
-  
   .lado-formulario {
     width: 100%;
     padding: 60px 24px;

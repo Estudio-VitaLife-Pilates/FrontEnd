@@ -1,13 +1,16 @@
 import React from "react";
-import './Banner.css';
+import styles from './Banner.module.css';
+import padraoFlow from "../../assets/flow-pattern0.svg";
+import logo from "../../assets/logo.svg";
+
 export function Banner(){
-  
+
     return(
-           <div className="lado-banner">
-            <img className="padrao-banner" src="src/assets/flow-pattern0.svg" alt="Pattern Background" />
-            <div className="circulo-decorativo-baixo"></div>
-            <div className="circulo-decorativo-cima"></div>
-            <img className="logo-banner" src="src/assets/logo.svg" alt="Logo" />
+           <div className={styles["lado-banner"]}>
+            <img className={styles["padrao-banner"]} src={padraoFlow} alt="Pattern Background" />
+            <div className={styles["circulo-decorativo-baixo"]}></div>
+            <div className={styles["circulo-decorativo-cima"]}></div>
+            <img className={styles["logo-banner"]} src={logo} alt="Logo" />
           </div>
     )
 }

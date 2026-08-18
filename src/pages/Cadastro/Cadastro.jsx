@@ -1,14 +1,18 @@
 import React, { useState } from 'react';
-import './Cadastro.css';
+import styles from './Cadastro.module.css';
 import { Banner } from '../../components/LoginCadastro/Banner';
 import { LogoTitulo } from '../../components/LoginCadastro/LogoTitulo';
+import iconePerfil from '../../assets/iconeperfil.svg';
+import iconeEmail from '../../assets/email.svg';
+import iconeCadeado from '../../assets/cadeado.svg';
+import iconeOlhoSenha from '../../assets/olhosenha.svg';
 
 export default function Cadastro() {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
-  
+
   const [exibirSenha, setExibirSenha] = useState(false);
   const [exibirConfirmarSenha, setExibirConfirmarSenha] = useState(false);
 
@@ -34,132 +38,131 @@ export default function Cadastro() {
 
   const executarCadastro = (event) => {
     event.preventDefault();
-    
+
     if (senha !== confirmarSenha) {
       alert("As senhas não coincidem!");
       return;
     }
-    
+
     console.log('Cadastro solicitado:', { nome, email, senha });
-    
+
   };
 
   return (
-    <div className="tela-cadastro">
-      <div className="corpo-cadastro">
-        <div className="app-cadastro">
+    <div className={styles["tela-cadastro"]}>
+      <div className={styles["corpo-cadastro"]}>
+        <div className={styles["app-cadastro"]}>
           <Banner></Banner>
-        
 
 
-          <div className="lado-formulario"> 
-            <div className="conteudo-formulario">
+          <div className={styles["lado-formulario"]}>
+            <div className={styles["conteudo-formulario"]}>
               <LogoTitulo></LogoTitulo>
-            
-          
-              <div className="cabecalho-cadastro">
-                <span className="etiqueta-acesso">Primeiro acesso</span>
-                <h1 className="titulo-cadastro">Criar conta</h1>
-                <p className="subtitulo-cadastro">Preencha os dados abaixo para começar.</p>
+
+
+              <div className={styles["cabecalho-cadastro"]}>
+                <span className={styles["etiqueta-acesso"]}>Primeiro acesso</span>
+                <h1 className={styles["titulo-cadastro"]}>Criar conta</h1>
+                <p className={styles["subtitulo-cadastro"]}>Preencha os dados abaixo para começar.</p>
               </div>
-              
-       
-              <form className="formulario-cadastro" onSubmit={executarCadastro}>
-                
-                <div className="grupo-campo">
-                  <label className="rotulo-campo" htmlFor="nome">Nome completo</label>
-                  <div className="container-input">
-                    <input 
-                      type="text" 
-                      id="nome" 
-                      className="input-formulario" 
-                      placeholder="Seu nome e sobrenome" 
+
+
+              <form className={styles["formulario-cadastro"]} onSubmit={executarCadastro}>
+
+                <div className={styles["grupo-campo"]}>
+                  <label className={styles["rotulo-campo"]} htmlFor="nome">Nome completo</label>
+                  <div className={styles["container-input"]}>
+                    <input
+                      type="text"
+                      id="nome"
+                      className={styles["input-formulario"]}
+                      placeholder="Seu nome e sobrenome"
                       value={nome}
                       onChange={setValorNome}
-                      required 
+                      required
                     />
-                    <img className="icone-input-esquerdo" src="src/assets/iconeperfil.svg" alt="Ícone usuário" />
+                    <img className={styles["icone-input-esquerdo"]} src={iconePerfil} alt="Ícone usuário" />
                   </div>
                 </div>
 
-                
-                <div className="grupo-campo">
-                  <label className="rotulo-campo" htmlFor="email">E-mail</label>
-                  <div className="container-input">
-                    <input 
-                      type="email" 
-                      id="email" 
-                      className="input-formulario" 
-                      placeholder="nome@email.com" 
+
+                <div className={styles["grupo-campo"]}>
+                  <label className={styles["rotulo-campo"]} htmlFor="email">E-mail</label>
+                  <div className={styles["container-input"]}>
+                    <input
+                      type="email"
+                      id="email"
+                      className={styles["input-formulario"]}
+                      placeholder="nome@email.com"
                       value={email}
                       onChange={setValorEmail}
-                      required 
+                      required
                     />
-                    <img className="icone-input-esquerdo" src="src/assets/email.svg" alt="E-mail" />
+                    <img className={styles["icone-input-esquerdo"]} src={iconeEmail} alt="E-mail" />
                   </div>
                 </div>
-                
-      
-                <div className="grupo-campo">
-                  <label className="rotulo-campo" htmlFor="senha">Senha</label>
-                  <div className="container-input">
-                    <input 
-                      type={exibirSenha ? "text" : "password"} 
-                      id="senha" 
-                      className="input-formulario input-senha" 
-                      placeholder="Mínimo 6 caracteres" 
+
+
+                <div className={styles["grupo-campo"]}>
+                  <label className={styles["rotulo-campo"]} htmlFor="senha">Senha</label>
+                  <div className={styles["container-input"]}>
+                    <input
+                      type={exibirSenha ? "text" : "password"}
+                      id="senha"
+                      className={`${styles["input-formulario"]} ${styles["input-senha"]}`}
+                      placeholder="Mínimo 6 caracteres"
                       value={senha}
                       onChange={setValorSenha}
                       minLength={6}
-                      required 
+                      required
                     />
-                    <img className="icone-input-esquerdo" src="src/assets/cadeado.svg" alt="Cadeado" />
-                    <button 
-                      type="button" 
-                      className="botao-alternar-senha" 
+                    <img className={styles["icone-input-esquerdo"]} src={iconeCadeado} alt="Cadeado" />
+                    <button
+                      type="button"
+                      className={styles["botao-alternar-senha"]}
                       onClick={setValorExibirSenha}
                     >
-                      <img className="icone-alternar" src="src/assets/olhosenha.svg" alt="Ver senha" />
+                      <img className={styles["icone-alternar"]} src={iconeOlhoSenha} alt="Ver senha" />
                     </button>
                   </div>
                 </div>
 
-                <div className="grupo-campo">
-                  <label className="rotulo-campo" htmlFor="confirmarSenha">Confirmar senha</label>
-                  <div className="container-input">
-                    <input 
-                      type={exibirConfirmarSenha ? "text" : "password"} 
-                      id="confirmarSenha" 
-                      className="input-formulario input-senha" 
-                      placeholder="Repita a senha" 
+                <div className={styles["grupo-campo"]}>
+                  <label className={styles["rotulo-campo"]} htmlFor="confirmarSenha">Confirmar senha</label>
+                  <div className={styles["container-input"]}>
+                    <input
+                      type={exibirConfirmarSenha ? "text" : "password"}
+                      id="confirmarSenha"
+                      className={`${styles["input-formulario"]} ${styles["input-senha"]}`}
+                      placeholder="Repita a senha"
                       value={confirmarSenha}
                       onChange={setValorConfirmarSenha}
-                      required 
+                      required
                     />
-                    <img className="icone-input-esquerdo" src="src/assets/cadeado.svg" alt="Confirmar Cadeado" />
-                    <button 
-                      type="button" 
-                      className="botao-alternar-senha" 
+                    <img className={styles["icone-input-esquerdo"]} src={iconeCadeado} alt="Confirmar Cadeado" />
+                    <button
+                      type="button"
+                      className={styles["botao-alternar-senha"]}
                       onClick={setValorExibirConfirmarSenha}
                     >
-                      <img className="icone-alternar" src="src/assets/olhosenha.svg" alt="Ver confirmação" />
+                      <img className={styles["icone-alternar"]} src={iconeOlhoSenha} alt="Ver confirmação" />
                     </button>
                   </div>
                 </div>
 
-               
-                <button type="submit" className="botao-enviar">
-                  <span className="texto-botao-enviar">Criar conta</span>
+
+                <button type="submit" className={styles["botao-enviar"]}>
+                  <span className={styles["texto-botao-enviar"]}>Criar conta</span>
                 </button>
               </form>
-              
-              
-              <div className="bloco-login">
-                <span className="texto-login">Já tem uma conta?</span>
-                <a href="/" className="link-login">Entrar</a>
+
+
+              <div className={styles["bloco-login"]}>
+                <span className={styles["texto-login"]}>Já tem uma conta?</span>
+                <a href="/" className={styles["link-login"]}>Entrar</a>
               </div>
 
-              
+
             </div>
           </div>
 
