@@ -2,8 +2,11 @@ import react from 'react';
 import styles from './LogoTitulo.module.css';
 import iconeSimples from '../../assets/iconeSimples.png';
 
-export function LogoTitulo(){
-    return(  <div className={styles["cabecalho-marca"]}>
+export function LogoTitulo({ comMargem = true }){
+    return(  <div
+                className={styles["cabecalho-marca"]}
+                style={comMargem ? undefined : { marginBottom: 0 }}
+              >
                 <div className={styles["fundo-icone-marca"]}>
                   <img className={styles["icone-marca"]} src={iconeSimples} alt="Ícone Logo" />
                 </div>
