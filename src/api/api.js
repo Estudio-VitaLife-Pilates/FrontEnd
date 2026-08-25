@@ -1,32 +1,28 @@
+import axios from "axios";
+
 const URL_BASE = "http://localhost:8080";
 
-async function requisitar(caminho, opcoes = {}) {
-  const resposta = await fetch(`${URL_BASE}${caminho}`, {
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...opcoes.headers,
-    },
-    ...opcoes,
-  });
+const cliente = axios.create({
+  baseURL: URL_BASE,
+  withCredentials: true, // envia o cookie httpOnly de autenticação em toda requisição
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
-  if (!resposta.ok) {
-    const mensagem = await resposta.text().catch(() => "");
-    throw new Error(mensagem || `Erro na requisição: ${resposta.status}`);
+async function requisitar(promessa) {
+  try {
+    const resposta = await promessa;
+    return resposta.data;
+  } catch (erro) {
+    const mensagem = erro.response?.data?.message || erro.response?.data || erro.message;
+    throw new Error(mensagem || "Erro na requisição");
   }
-
-  if (resposta.status === 204) {
-    return null;
-  }
-
-  return resposta.json();
 }
 
 export const api = {
-  get: (caminho) => requisitar(caminho, { method: "GET" }),
-  post: (caminho, corpo) =>
-    requisitar(caminho, { method: "POST", body: JSON.stringify(corpo) }),
-  put: (caminho, corpo) =>
-    requisitar(caminho, { method: "PUT", body: JSON.stringify(corpo) }),
-  remover: (caminho) => requisitar(caminho, { method: "DELETE" }),
+  get: (caminho) => requisitar(cliente.get(caminho)),
+  post: (caminho, corpo) => requisitar(cliente.post(caminho, corpo)),
+  put: (caminho, corpo) => requisitar(cliente.put(caminho, corpo)),
+  remover: (caminho) => requisitar(cliente.delete(caminho)),
 };
