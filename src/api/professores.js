@@ -4,6 +4,10 @@ export function listarProfessores() {
   return api.get("/professores");
 }
 
+export function buscarProfessorPorId(id) {
+  return api.get(`/professores/${id}`);
+}
+
 export function cadastrarProfessor(professor) {
   return api.post("/professores", professor);
 }
