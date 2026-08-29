@@ -1,0 +1,50 @@
+.cabecalho-marca {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 36px;
+}
+
+.fundo-icone-marca {
+  background: linear-gradient(
+    135deg,
+    rgba(232, 213, 209, 1) 0%,
+    rgba(212, 197, 226, 1) 100%
+  );
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+}
+
+.icone-marca {
+  width: 20px;
+  height: 20px;
+}
+
+.texto-marca {
+  display: flex;
+  flex-direction: column;
+}
+
+.etiqueta-studio {
+  color: #999999;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 10.4px;
+  line-height: 13px;
+  letter-spacing: 1.87px;
+  font-weight: 400;
+  text-transform: uppercase;
+}
+
+.nome-marca {
+  color: #2c2c2c;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 16px;
+  line-height: 20px;
+  letter-spacing: 0.32px;
+  font-weight: 400;
+}
