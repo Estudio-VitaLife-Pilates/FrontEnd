@@ -1,6 +1,7 @@
 import {Login} from './pages/Login/Login'
 import Cadastro from './pages/Cadastro/Cadastro'
 import Professores from './pages/Professores/Professores'
+import Planos from './pages/Planos/Planos'
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 
@@ -12,6 +13,7 @@ function App() {
         <Route path="/" element={<Login/>} />
         <Route path="/cadastro" element={<Cadastro/>} />
         <Route path="/professores" element={<Professores/>} />
+        <Route path="/planos" element={<Planos/>} />
       </Routes>
     </BrowserRouter>
   );
