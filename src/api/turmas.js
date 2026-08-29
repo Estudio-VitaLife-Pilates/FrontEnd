@@ -39,3 +39,7 @@ export function adicionarAlunoNaTurma(idTurma, alunoId) {
 export function removerAlunoDaTurma(idTurma, alunoId) {
   return api.remover(`/turmas/${idTurma}/alunos/${alunoId}`);
 }
+
+export function listarAlunosDaTurma(idTurma) {
+  return api.get(`/turmas/${idTurma}/alunos`);
+}

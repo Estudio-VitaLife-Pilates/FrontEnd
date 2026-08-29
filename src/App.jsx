@@ -5,6 +5,7 @@ import DadosProfessor from './pages/DadosProfessor/DadosProfessor'
 import Planos from './pages/Planos/Planos'
 import Turmas from './pages/Turmas/Turmas'
 import TurmaEspecifica from './pages/TurmaEspecifica/TurmaEspecifica'
+import Alunos from './pages/Alunos/Alunos'
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 
@@ -20,6 +21,7 @@ function App() {
         <Route path="/planos" element={<Planos/>} />
         <Route path="/turmas" element={<Turmas/>} />
         <Route path="/turmas/:id" element={<TurmaEspecifica/>} />
+        <Route path="/alunos" element={<Alunos/>} />
       </Routes>
     </BrowserRouter>
   );
