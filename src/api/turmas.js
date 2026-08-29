@@ -15,3 +15,7 @@ export function buscarVagasTurma(id) {
 export function editarTurma(id, turma) {
   return api.put(`/turmas/${id}`, turma);
 }
+
+export function cadastrarTurma(turma) {
+  return api.post("/turmas", turma);
+}

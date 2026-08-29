@@ -1,0 +1,401 @@
+.pagina-turmas,
+.pagina-turmas * {
+  box-sizing: border-box;
+}
+
+.pagina-turmas {
+  background: #faf7f5;
+  min-height: 100vh;
+}
+
+.conteudo {
+  max-width: 1152px;
+  margin: 0 auto;
+  padding: 48px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.cabecalho-pagina {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.etiqueta-agenda {
+  color: #999999;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 14px;
+  letter-spacing: 2.88px;
+  text-transform: uppercase;
+}
+
+.titulo-pagina {
+  color: #2c2c2c;
+  font-family: "Poppins-Medium", sans-serif;
+  font-size: 24px;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+.botao-cadastrar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #d97960;
+  color: #ffffff;
+  border: none;
+  border-radius: 999px;
+  padding: 8px 20px;
+  font-family: "Inter-Medium", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.botao-cadastrar:hover {
+  opacity: 0.9;
+}
+
+.mensagem-info {
+  color: #999999;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 14px;
+}
+
+.mensagem-erro {
+  color: #b3402c;
+  background: #fbe9e5;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 14px;
+}
+
+/* KPIs */
+
+.grade-kpi {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.cartao-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 21px;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 0.8px solid #e8e8e8;
+  box-shadow: 0px 1px 1.5px 0px rgba(0, 0, 0, 0.03);
+}
+
+.rotulo-kpi {
+  color: #999999;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 10.88px;
+  letter-spacing: 0.87px;
+  text-transform: uppercase;
+}
+
+.valor-kpi {
+  color: #2c2c2c;
+  font-family: "Poppins-Medium", sans-serif;
+  font-size: 25.6px;
+}
+
+.legenda-kpi {
+  color: #5a4f4d;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 12.48px;
+}
+
+/* Filtros */
+
+.barra-filtros {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.grupo-campo-filtro {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.rotulo-busca {
+  color: #999999;
+  font-family: "Inter-Medium", sans-serif;
+  font-size: 14px;
+}
+
+.container-busca {
+  position: relative;
+}
+
+.icone-busca {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #999999;
+  pointer-events: none;
+}
+
+.input-busca,
+.select-filtro {
+  width: 100%;
+  height: 44px;
+  background: #ffffff;
+  border: 0.8px solid #e8e8e8;
+  border-radius: 999px;
+  padding: 4px 16px;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 14px;
+  color: #2c2c2c;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.input-busca {
+  padding-left: 44px;
+}
+
+.input-busca:focus,
+.select-filtro:focus {
+  border-color: #d97960;
+}
+
+/* Grupos por professor */
+
+.grupo-professor {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cabecalho-grupo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.titulo-grupo {
+  color: #2c2c2c;
+  font-family: "Poppins-Medium", sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.contagem-grupo {
+  background: #f0e6e0;
+  color: #c85a54;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 12.48px;
+  padding: 4px 12px;
+  border-radius: 999px;
+}
+
+.tabela-turmas {
+  background: #ffffff;
+  border: 0.8px solid #e8e8e8;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.02);
+}
+
+.linha-cabecalho-turmas {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr 1fr 0.8fr 0.8fr;
+  gap: 16px;
+  background: #d97960;
+  color: #ffffff;
+  padding: 12px 24px;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 11.52px;
+  letter-spacing: 0.69px;
+  text-transform: uppercase;
+}
+
+.coluna-central {
+  text-align: center;
+}
+
+.linha-turma {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr 1fr 0.8fr 0.8fr;
+  gap: 16px;
+  align-items: center;
+  padding: 16px 24px;
+  border-top: 0.8px solid #e8e8e8;
+}
+
+.nome-turma {
+  color: #2c2c2c;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 16px;
+}
+
+.proxima-aula,
+.duracao-turma,
+.alunos-turma {
+  color: #5a4f4d;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 14.08px;
+}
+
+.alunos-turma {
+  text-align: center;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-family: "Inter-Medium", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.badgeAtiva {
+  background: #e6f4ed;
+  color: #2a7a4f;
+}
+
+.badgeInativa {
+  background: #f0e6e0;
+  color: #999999;
+}
+
+/* Modal */
+
+.fundo-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(44, 44, 44, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 10;
+}
+
+.caixa-modal {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 32px;
+  width: 100%;
+  max-width: 400px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.titulo-modal {
+  color: #2c2c2c;
+  font-family: "Poppins-Medium", sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  margin-bottom: 24px;
+}
+
+.grupo-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.rotulo-campo {
+  color: #2c2c2c;
+  font-family: "Inter-Medium", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.input-modal {
+  height: 48px;
+  background: #ffffff;
+  border: 0.8px solid #e8e8e8;
+  border-radius: 14px;
+  padding: 4px 16px;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 14px;
+  color: #2c2c2c;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.input-modal:focus {
+  border-color: #d97960;
+}
+
+.acoes-modal {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.botao-cancelar,
+.botao-salvar {
+  flex: 1;
+  height: 48px;
+  border-radius: 14px;
+  border: none;
+  font-family: "Inter-Medium", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.botao-cancelar {
+  background: #f0e6e0;
+  color: #2c2c2c;
+}
+
+.botao-salvar {
+  background: #d97960;
+  color: #ffffff;
+}
+
+.botao-cancelar:hover,
+.botao-salvar:hover {
+  opacity: 0.9;
+}
+
+.botao-salvar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+  .grade-kpi {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .linha-cabecalho-turmas {
+    display: none;
+  }
+
+  .linha-turma {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .coluna-central,
+  .alunos-turma {
+    text-align: left;
+  }
+
+  .grade-kpi {
+    grid-template-columns: 1fr;
+  }
+}
