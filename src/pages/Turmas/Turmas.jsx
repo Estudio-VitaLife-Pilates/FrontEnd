@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import styles from "./Turmas.module.css";
 import { Navbar } from "../../components/Navbar/Navbar";
 import {
@@ -68,6 +69,7 @@ const FORM_VAZIO = {
 };
 
 export default function Turmas() {
+  const navigate = useNavigate();
   const [turmas, setTurmas] = useState([]);
   const [professores, setProfessores] = useState([]);
   const [carregando, setCarregando] = useState(true);
@@ -298,7 +300,13 @@ export default function Turmas() {
                     </div>
 
                     {itens.map((turma) => (
-                      <div className={styles["linha-turma"]} key={turma.id}>
+                      <div
+                        className={styles["linha-turma"]}
+                        key={turma.id}
+                        onClick={() => navigate(`/turmas/${turma.id}`)}
+                        role="button"
+                        tabIndex={0}
+                      >
                         <span className={styles["nome-turma"]}>
                           {formatarHorario(turma.diaSemana, turma.horaInicio)}
                         </span>

@@ -1,0 +1,568 @@
+.pagina-turma,
+.pagina-turma * {
+  box-sizing: border-box;
+}
+
+.pagina-turma {
+  background: #faf7f5;
+  min-height: 100vh;
+}
+
+.conteudo {
+  max-width: 1024px;
+  margin: 0 auto;
+  padding: 40px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.link-voltar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  background: none;
+  border: none;
+  color: #999999;
+  font-family: "Inter-Medium", sans-serif;
+  font-size: 13.6px;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 24px;
+}
+
+.link-voltar:hover {
+  color: #5a4f4d;
+}
+
+.mensagem-info {
+  color: #999999;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 14px;
+}
+
+.mensagem-erro {
+  color: #b3402c;
+  background: #fbe9e5;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+/* Linha do topo: turma + professor */
+
+.linha-topo {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.cartao-turma {
+  background: linear-gradient(155deg, #f0e6e0 0%, #e6dff5 100%);
+  border-radius: 24px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+}
+
+.etiqueta-info {
+  color: #999999;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 10.88px;
+  letter-spacing: 1.52px;
+  text-transform: uppercase;
+}
+
+.titulo-turma {
+  color: #2c2c2c;
+  font-family: "Poppins-Medium", sans-serif;
+  font-size: 24px;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+.texto-proxima {
+  color: #999999;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 13.12px;
+  margin-top: 2px;
+}
+
+.texto-proxima strong {
+  color: #2c2c2c;
+  font-weight: 400;
+}
+
+.grade-detalhes {
+  display: flex;
+  gap: 32px;
+  margin-top: 20px;
+}
+
+.rotulo-detalhe {
+  display: block;
+  color: #999999;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 10.4px;
+  letter-spacing: 0.83px;
+  text-transform: uppercase;
+}
+
+.valor-detalhe {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #2c2c2c;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 16px;
+  margin-top: 4px;
+}
+
+.bloco-ocupacao {
+  margin-top: 20px;
+}
+
+.linha-ocupacao {
+  display: flex;
+  justify-content: space-between;
+  color: #999999;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 11.52px;
+  margin-bottom: 6px;
+}
+
+.linha-ocupacao strong {
+  color: #2c2c2c;
+  font-weight: 500;
+}
+
+.percentual-ocupacao {
+  color: #2a7a4f;
+  font-family: "Inter-Medium", sans-serif;
+  font-weight: 500;
+}
+
+.barra-ocupacao {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.5);
+  overflow: hidden;
+}
+
+.barra-ocupacao-preenchida {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #d97960, #d4c5e2);
+}
+
+.linha-acoes-turma {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.badge {
+  display: inline-flex;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-family: "Inter-Medium", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.badgeAtiva {
+  background: #e6f4ed;
+  color: #2a7a4f;
+}
+
+.badgeInativa {
+  background: rgba(255, 255, 255, 0.6);
+  color: #999999;
+}
+
+.botao-desativar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.65);
+  border: 0.8px solid #e8e8e8;
+  color: #999999;
+  border-radius: 999px;
+  padding: 7px 13px;
+  font-family: "Inter-Medium", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.botao-desativar:hover {
+  opacity: 0.8;
+}
+
+/* Card do professor */
+
+.cartao-professor {
+  background: #ffffff;
+  border: 0.8px solid #e8e8e8;
+  border-radius: 16px;
+  padding: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0px 1px 1.5px 0px rgba(0, 0, 0, 0.03);
+}
+
+.cabecalho-professor {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.botao-trocar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f0e6e0;
+  border: 0.8px solid #e8d5d1;
+  color: #999999;
+  border-radius: 999px;
+  padding: 7px 13px;
+  font-family: "Inter-Medium", sans-serif;
+  font-size: 11.52px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.botao-trocar:hover {
+  opacity: 0.85;
+}
+
+.info-professor {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.avatar-professor {
+  width: 64px;
+  height: 64px;
+  border-radius: 999px;
+  background: #d4c5e2;
+  border: 2px solid #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #5a4f4d;
+  font-family: "Poppins-Medium", sans-serif;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.nome-professor {
+  color: #2c2c2c;
+  font-family: "Poppins-Medium", sans-serif;
+  font-size: 16px;
+}
+
+.bloco-proxima-aula {
+  background: #f0e6e0;
+  border-radius: 14px;
+  padding: 12px;
+  margin-top: auto;
+}
+
+.valor-proxima-aula {
+  color: #2c2c2c;
+  font-family: "Inter-Medium", sans-serif;
+  font-size: 14.08px;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+/* Seção de alunos */
+
+.secao-alunos {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cabecalho-secao {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.titulo-com-contagem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.titulo-secao {
+  color: #2c2c2c;
+  font-family: "Poppins-Medium", sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.contagem-alunos {
+  background: #f0e6e0;
+  color: #999999;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 11.52px;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.botao-adicionar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #d97960;
+  color: #ffffff;
+  border: none;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-family: "Inter-Medium", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.botao-adicionar:hover {
+  opacity: 0.9;
+}
+
+.tabela-alunos {
+  background: #ffffff;
+  border: 0.8px solid #e8e8e8;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0px 1px 3px 0px rgba(0, 0, 0, 0.02);
+}
+
+.linha-cabecalho-alunos {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1.4fr 0.5fr;
+  gap: 16px;
+  background: #d97960;
+  color: #ffffff;
+  padding: 12px 28px;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.72px;
+  text-transform: uppercase;
+}
+
+.coluna-acoes {
+  text-align: right;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.linha-aluno {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1.4fr 0.5fr;
+  gap: 16px;
+  align-items: center;
+  padding: 16px 28px;
+  border-top: 0.8px solid #e8e8e8;
+}
+
+.nome-com-avatar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #2c2c2c;
+  font-family: "Inter-Medium", sans-serif;
+  font-size: 14.4px;
+  font-weight: 500;
+}
+
+.avatar-aluno {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: #e8d5d1;
+  color: #c85a54;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Poppins-Medium", sans-serif;
+  font-size: 11.52px;
+  flex-shrink: 0;
+}
+
+.badge-reposicao {
+  display: inline-block;
+  background: #fef3c7;
+  color: #92580a;
+  font-family: "Inter-Medium", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 2px 12px;
+  border-radius: 999px;
+}
+
+.status-normal {
+  color: #999999;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 13.12px;
+}
+
+.telefone-aluno {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #5a4f4d;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 14.08px;
+}
+
+.botao-remover-aluno {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: none;
+  background: none;
+  color: #999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.botao-remover-aluno:hover {
+  background-color: #fff0ee;
+  color: #c85a54;
+}
+
+/* Modal */
+
+.fundo-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(44, 44, 44, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 10;
+}
+
+.caixa-modal {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 32px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.titulo-modal {
+  color: #2c2c2c;
+  font-family: "Poppins-Medium", sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  margin-bottom: 24px;
+}
+
+.grupo-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.rotulo-campo {
+  color: #2c2c2c;
+  font-family: "Inter-Medium", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.input-modal {
+  height: 48px;
+  background: #ffffff;
+  border: 0.8px solid #e8e8e8;
+  border-radius: 14px;
+  padding: 4px 16px;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 14px;
+  color: #2c2c2c;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.input-modal:focus {
+  border-color: #d97960;
+}
+
+.acoes-modal {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.botao-cancelar,
+.botao-salvar {
+  flex: 1;
+  height: 48px;
+  border-radius: 14px;
+  border: none;
+  font-family: "Inter-Medium", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.botao-cancelar {
+  background: #f0e6e0;
+  color: #2c2c2c;
+}
+
+.botao-salvar {
+  background: #d97960;
+  color: #ffffff;
+}
+
+.botao-cancelar:hover,
+.botao-salvar:hover {
+  opacity: 0.9;
+}
+
+.botao-salvar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 800px) {
+  .linha-topo {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .linha-cabecalho-alunos {
+    display: none;
+  }
+
+  .linha-aluno {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .coluna-acoes {
+    justify-content: flex-start;
+  }
+}
