@@ -1,8 +1,9 @@
 import styles from './navbar.module.css'
-import { NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { RxExit } from "react-icons/rx";
 import { LogoTitulo } from "../LoginCadastro/LogoTitulo";
 import pfpImg from '../../assets/pfp.jpg'
+import { logout } from "../../api/usuarios";
 
 const itensMenu = [
     { rotulo: "Visão geral", caminho: "/inicio" },
@@ -13,6 +14,14 @@ const itensMenu = [
 ];
 
 export function Navbar() {
+    const navigate = useNavigate();
+
+    function executarSair() {
+        logout()
+            .catch(() => {})
+            .finally(() => navigate("/"));
+    }
+
     return (
         <nav className={styles.navbar}>
             <LogoTitulo comMargem={false} />
@@ -33,10 +42,18 @@ export function Navbar() {
             </ul>
 
             <div className={styles.perfil}>
-                <a href="#" className={styles.perfilImagem}>
+                <Link to="/perfil" className={styles.perfilImagem} title="Meu perfil">
                     <img src={pfpImg} alt="Perfil" />
-                </a>
-                <RxExit size={20} className={styles.iconeSair} />
+                </Link>
+                <button
+                    type="button"
+                    className={styles.botaoSair}
+                    onClick={executarSair}
+                    aria-label="Sair"
+                    title="Sair"
+                >
+                    <RxExit size={20} className={styles.iconeSair} />
+                </button>
             </div>
         </nav>
     )

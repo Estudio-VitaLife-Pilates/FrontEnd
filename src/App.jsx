@@ -8,6 +8,7 @@ import TurmaEspecifica from './pages/TurmaEspecifica/TurmaEspecifica'
 import Alunos from './pages/Alunos/Alunos'
 import DadosAluno from './pages/DadosAluno/DadosAluno'
 import VisaoGeral from './pages/VisaoGeral/VisaoGeral'
+import Perfil from './pages/Perfil/Perfil'
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 
@@ -26,6 +27,7 @@ function App() {
         <Route path="/alunos" element={<Alunos/>} />
         <Route path="/alunos/:id" element={<DadosAluno/>} />
         <Route path="/inicio" element={<VisaoGeral/>} />
+        <Route path="/perfil" element={<Perfil/>} />
       </Routes>
     </BrowserRouter>
   );
