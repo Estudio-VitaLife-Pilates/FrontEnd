@@ -88,6 +88,7 @@ export default function DadosAluno() {
   const [modalFichaAberto, setModalFichaAberto] = useState(false);
   const [ficha, setFicha] = useState("");
   const [salvandoFicha, setSalvandoFicha] = useState(false);
+  const [erroFicha, setErroFicha] = useState(null);
 
   const [modalRemarcarAberto, setModalRemarcarAberto] = useState(false);
   const [aulaParaRemarcar, setAulaParaRemarcar] = useState(null);
@@ -154,12 +155,19 @@ export default function DadosAluno() {
   }
 
   function abrirModalFicha() {
+    setErroFicha(null);
     setFicha(aluno.fichaAnamnese ?? "");
     setModalFichaAberto(true);
   }
 
+  function fecharModalFicha() {
+    setModalFichaAberto(false);
+    setErroFicha(null);
+  }
+
   function executarSalvarFicha(event) {
     event.preventDefault();
+    setErroFicha(null);
     setSalvandoFicha(true);
 
     editarAluno(aluno.id, {
@@ -174,7 +182,7 @@ export default function DadosAluno() {
         setModalFichaAberto(false);
         carregarTudo();
       })
-      .catch(() => setAcaoErro("Não foi possível salvar a ficha de anamnese."))
+      .catch(() => setErroFicha("Não foi possível salvar a ficha de anamnese."))
       .finally(() => setSalvandoFicha(false));
   }
 
@@ -503,15 +511,14 @@ export default function DadosAluno() {
       </div>
 
       {modalFichaAberto && (
-        <div
-          className={styles["fundo-modal"]}
-          onClick={() => setModalFichaAberto(false)}
-        >
+        <div className={styles["fundo-modal"]} onClick={fecharModalFicha}>
           <div
             className={styles["caixa-modal"]}
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className={styles["titulo-modal"]}>Editar ficha de anamnese</h2>
+
+            {erroFicha && <p className={styles["mensagem-erro"]}>{erroFicha}</p>}
 
             <form onSubmit={executarSalvarFicha}>
               <div className={styles["grupo-campo"]}>
@@ -528,7 +535,7 @@ export default function DadosAluno() {
                 <button
                   type="button"
                   className={styles["botao-cancelar"]}
-                  onClick={() => setModalFichaAberto(false)}
+                  onClick={fecharModalFicha}
                 >
                   Cancelar
                 </button>

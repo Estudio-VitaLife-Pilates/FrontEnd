@@ -18,6 +18,7 @@ export function Login() {
   const [senha, setSenha] = useState("");
   const [exibirSenha, setExibirSenha] = useState(false);
   const [carregando, setCarregando] = useState(false);
+  const [erroLogin, setErroLogin] = useState(null);
 
   function setValorEmail(e) {
     setEmail(e.target.value);
@@ -33,6 +34,7 @@ export function Login() {
 
   async function executarLogin(event) {
     event.preventDefault();
+    setErroLogin(null);
 
     try {
       setCarregando(true);
@@ -44,7 +46,13 @@ export function Login() {
 
       navigate("/inicio");
     } catch (erro) {
-      alert(erro.message);
+      // A API responde 401 sem corpo legível tanto para e-mail inexistente quanto
+      // para senha errada, então nunca mostramos o texto cru do erro aqui.
+      setErroLogin(
+        erro.status === null
+          ? "Não foi possível conectar ao servidor. Tente novamente."
+          : "E-mail ou senha inválidos. Verifique os dados e tente novamente."
+      );
     } finally {
       setCarregando(false);
     }
@@ -69,6 +77,10 @@ export function Login() {
                   Entrar no sistema
                 </h1>
               </div>
+
+              {erroLogin && (
+                <p className={styles["mensagem-erro"]}>{erroLogin}</p>
+              )}
 
               <form
                 className={styles["formulario-login"]}
