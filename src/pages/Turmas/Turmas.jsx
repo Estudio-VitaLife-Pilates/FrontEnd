@@ -78,6 +78,7 @@ export default function Turmas() {
   const [busca, setBusca] = useState("");
   const [filtroDia, setFiltroDia] = useState("");
   const [filtroProfessor, setFiltroProfessor] = useState("");
+  const [mostrarInativas, setMostrarInativas] = useState(false);
 
   const [modalAberto, setModalAberto] = useState(false);
   const [form, setForm] = useState(FORM_VAZIO);
@@ -116,9 +117,10 @@ export default function Turmas() {
       const bateDia = !filtroDia || turma.diaSemana === filtroDia;
       const bateProfessor =
         !filtroProfessor || String(turma.professorId) === String(filtroProfessor);
-      return bateBusca && bateDia && bateProfessor;
+      const bateStatus = mostrarInativas ? !turma.ativa : turma.ativa;
+      return bateBusca && bateDia && bateProfessor && bateStatus;
     });
-  }, [turmas, busca, filtroDia, filtroProfessor]);
+  }, [turmas, busca, filtroDia, filtroProfessor, mostrarInativas]);
 
   const totalTurmas = turmas.length;
   const totalAtivas = turmas.filter((t) => t.ativa).length;
@@ -185,10 +187,18 @@ export default function Turmas() {
             <span className={styles["etiqueta-agenda"]}>Agenda</span>
             <h1 className={styles["titulo-pagina"]}>Turmas</h1>
           </div>
-          <button className={styles["botao-cadastrar"]} onClick={abrirModal}>
-            <FiPlus size={16} />
-            Cadastrar turma
-          </button>
+          <div className={styles["acoes-cabecalho"]}>
+            <button
+              className={styles["botao-secundario"]}
+              onClick={() => setMostrarInativas((atual) => !atual)}
+            >
+              {mostrarInativas ? "Ver turmas ativas" : "Ver turmas inativas"}
+            </button>
+            <button className={styles["botao-cadastrar"]} onClick={abrirModal}>
+              <FiPlus size={16} />
+              Cadastrar turma
+            </button>
+          </div>
         </div>
 
         {erro && <p className={styles["mensagem-erro"]}>{erro}</p>}

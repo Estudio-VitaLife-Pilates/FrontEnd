@@ -1,5 +1,9 @@
 import { api } from "./api";
 
+export function listarPlanos() {
+  return api.get("/planos");
+}
+
 export function listarPlanosDetalhado() {
   return api.get("/planos/details");
 }

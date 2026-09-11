@@ -5,6 +5,7 @@ import { LogoTitulo } from "../LoginCadastro/LogoTitulo";
 import pfpImg from '../../assets/pfp.jpg'
 
 const itensMenu = [
+    { rotulo: "Visão geral", caminho: "/inicio" },
     { rotulo: "Planos", caminho: "/planos" },
     { rotulo: "Alunos", caminho: "/alunos" },
     { rotulo: "Turmas", caminho: "/turmas" },

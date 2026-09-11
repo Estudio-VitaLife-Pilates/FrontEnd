@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import styles from "./Login.module.css";
 
 import { Banner } from "../../components/LoginCadastro/Banner";
@@ -12,6 +13,7 @@ import iconeOlhoSenha from "../../assets/olhosenha.svg";
 import { login } from "../../api/usuarios";
 
 export function Login() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [exibirSenha, setExibirSenha] = useState(false);
@@ -40,9 +42,7 @@ export function Login() {
         senha,
       });
 
-      // Depois podemos colocar aqui:
-      // redirecionamento para a área do aluno.
-
+      navigate("/inicio");
     } catch (erro) {
       alert(erro.message);
     } finally {

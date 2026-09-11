@@ -27,3 +27,11 @@ export function editarAluno(id, aluno) {
 export function inativarAluno(id) {
   return api.remover(`/alunos/${id}`);
 }
+
+export function associarPlano(alunoId, planoId) {
+  return api.post(`/alunos/planos/${alunoId}/${planoId}`);
+}
+
+export function desativarPlanoDoAluno(alunoId, planoId, alunoPlanoId) {
+  return api.remover(`/alunos/planos/${alunoId}/${planoId}/${alunoPlanoId}/desativar`);
+}
