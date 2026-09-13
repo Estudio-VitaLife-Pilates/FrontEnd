@@ -23,3 +23,15 @@ export function registrarReposicao(aulaDestinoId, alunoId, aulaOrigemId) {
 export function buscarProximaAulaInfoDaTurma(turmaId) {
   return api.get(`/aulas/turma/${turmaId}/proxima/info`);
 }
+
+export function buscarProximasAulasDaTurma(turmaId) {
+  return api.get(`/aulas/turma/${turmaId}/proximas`);
+}
+
+export function listarAlunosDaAula(aulaId) {
+  return api.get(`/aulas/${aulaId}/alunos`);
+}
+
+export function buscarVagasDaAula(aulaId) {
+  return api.get(`/aulas/${aulaId}/vagas`);
+}

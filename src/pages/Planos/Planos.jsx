@@ -202,7 +202,7 @@ export default function Planos() {
                 </div>
                 <span className={styles["rotulo-kpi"]}>Plano mais popular</span>
                 <span className={styles["valor-kpi"]}>
-                  {planoMaisPopular ? `${planoMaisPopular.frequenciaSemanal}x/sem` : "—"}
+                  {planoMaisPopular ? planoMaisPopular.nome : "—"}
                 </span>
                 <span className={styles["legenda-kpi"]}>
                   {planoMaisPopular ? `${planoMaisPopular.totalAlunos} alunos` : "sem dados"}
@@ -239,17 +239,20 @@ export default function Planos() {
 
                 <div className={styles["tabela-planos"]}>
                   <div className={styles["linha-cabecalho"]}>
-                    <span>Frequência</span>
-                    <span>Alunos</span>
-                    <span>Distribuição</span>
+                    <span>Plano</span>
+                    <span className={styles["coluna-central"]}>Alunos</span>
+                    <span className={styles["coluna-central"]}>Distribuição</span>
                     <span className={styles["coluna-valor"]}>Valor</span>
                     <span className={styles["coluna-acoes"]}>Ações</span>
                   </div>
 
                   {grupo.itens.map((plano) => (
                     <div className={styles["linha-plano"]} key={plano.id}>
-                      <span className={styles["nome-plano"]}>
-                        {plano.frequenciaSemanal}x por semana
+                      <span className={styles["celula-nome-plano"]}>
+                        <span className={styles["nome-plano"]}>{plano.nome}</span>
+                        <span className={styles["frequencia-plano"]}>
+                          {plano.frequenciaSemanal}x por semana
+                        </span>
                       </span>
 
                       <span className={styles["alunos-plano"]}>

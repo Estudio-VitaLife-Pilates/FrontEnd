@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import styles from "./DadosAluno.module.css";
 import { Navbar } from "../../components/Navbar/Navbar";
 import {
@@ -8,7 +8,12 @@ import {
   editarAluno,
   inativarAluno,
 } from "../../api/alunos";
-import { listarAlunosDaTurma, listarTurmas } from "../../api/turmas";
+import {
+  adicionarAlunoNaTurma,
+  listarAlunosDaTurma,
+  listarTurmas,
+  removerAlunoDaTurma,
+} from "../../api/turmas";
 import { listarPlanos } from "../../api/planos";
 import {
   cancelarAulaDoAluno,
@@ -22,10 +27,12 @@ import {
   FiMail,
   FiCreditCard,
   FiUserX,
+  FiUsers,
   FiEdit2,
   FiX,
   FiRepeat,
   FiPlus,
+  FiXCircle,
 } from "react-icons/fi";
 
 const NOMES_DIA_SEMANA = {
@@ -54,6 +61,24 @@ const ROTULOS_STATUS = {
   CANCELADA: "Cancelada",
   AUSENTE: "Ausente",
 };
+
+const ESTILO_STATUS = {
+  AGENDADO: "badgeAgendada",
+  REPOSICAO: "badgeReposicao",
+  CANCELADA: "badgeCancelada",
+  AUSENTE: "badgeAusente",
+};
+
+function statusDaAula(item) {
+  // item.status já é a fonte da verdade (inclui "REPOSICAO" quando aplicável)
+  // — item.reposicao é só um flag estrutural (se a aula veio de uma origem),
+  // e não deve sobrepor um status que mudou depois, como "CANCELADA".
+  const status = item.status;
+  return {
+    rotulo: ROTULOS_STATUS[status] ?? status,
+    estilo: ESTILO_STATUS[status] ?? "badgeAgendada",
+  };
+}
 
 function formatarHorario(diaSemana, horaInicio) {
   const dia = NOMES_DIA_SEMANA[diaSemana] ?? diaSemana ?? "—";
@@ -84,9 +109,21 @@ export default function DadosAluno() {
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(null);
   const [acaoErro, setAcaoErro] = useState(null);
+  const [cancelandoTurmaId, setCancelandoTurmaId] = useState(null);
 
   const [modalFichaAberto, setModalFichaAberto] = useState(false);
   const [ficha, setFicha] = useState("");
+
+  const [modalDadosAberto, setModalDadosAberto] = useState(false);
+  const [formDados, setFormDados] = useState({
+    nome: "",
+    telefone: "",
+    email: "",
+    cpf: "",
+    dataNascimento: "",
+  });
+  const [salvandoDados, setSalvandoDados] = useState(false);
+  const [erroDados, setErroDados] = useState(null);
   const [salvandoFicha, setSalvandoFicha] = useState(false);
   const [erroFicha, setErroFicha] = useState(null);
 
@@ -102,6 +139,13 @@ export default function DadosAluno() {
   const [planoSelecionado, setPlanoSelecionado] = useState("");
   const [vinculandoPlano, setVinculandoPlano] = useState(false);
   const [erroPlano, setErroPlano] = useState(null);
+
+  const [modalTurmaAberto, setModalTurmaAberto] = useState(false);
+  const [turmasParaVincular, setTurmasParaVincular] = useState([]);
+  const [turmaParaVincularSelecionada, setTurmaParaVincularSelecionada] =
+    useState("");
+  const [vinculandoTurma, setVinculandoTurma] = useState(false);
+  const [erroVincularTurma, setErroVincularTurma] = useState(null);
 
   useEffect(() => {
     carregarTudo();
@@ -131,10 +175,10 @@ export default function DadosAluno() {
             }))
           )
         ).then((porTurma) => {
-          const labels = porTurma
+          const turmasVinculadas = porTurma
             .filter((p) => p.temAluno)
-            .map((p) => formatarHorarioCurto(p.turma.diaSemana, p.turma.horaInicio));
-          setTurmasDoAluno(labels);
+            .map((p) => p.turma);
+          setTurmasDoAluno(turmasVinculadas);
         });
       })
       .catch(() => setErro("Não foi possível carregar os dados do aluno."))
@@ -186,6 +230,45 @@ export default function DadosAluno() {
       .finally(() => setSalvandoFicha(false));
   }
 
+  function abrirModalDados() {
+    setFormDados({
+      nome: aluno.nome ?? "",
+      telefone: aluno.telefone ?? "",
+      email: aluno.email ?? "",
+      cpf: aluno.cpf ?? "",
+      dataNascimento: aluno.dataNascimento ?? "",
+    });
+    setErroDados(null);
+    setModalDadosAberto(true);
+  }
+
+  function fecharModalDados() {
+    setModalDadosAberto(false);
+    setErroDados(null);
+  }
+
+  function setValorFormDados(campo) {
+    return (event) =>
+      setFormDados((atual) => ({ ...atual, [campo]: event.target.value }));
+  }
+
+  function executarSalvarDados(event) {
+    event.preventDefault();
+    setErroDados(null);
+    setSalvandoDados(true);
+
+    editarAluno(aluno.id, {
+      ...formDados,
+      fichaAnamnese: aluno.fichaAnamnese,
+    })
+      .then(() => {
+        setModalDadosAberto(false);
+        carregarTudo();
+      })
+      .catch(() => setErroDados("Não foi possível salvar os dados do aluno."))
+      .finally(() => setSalvandoDados(false));
+  }
+
   function executarCancelar(aula) {
     if (!window.confirm("Cancelar esta aula do aluno?")) return;
 
@@ -193,6 +276,23 @@ export default function DadosAluno() {
     cancelarAulaDoAluno(aula.id)
       .then(carregarTudo)
       .catch(() => setAcaoErro("Não foi possível cancelar a aula."));
+  }
+
+  function executarCancelarTurma(turma) {
+    const rotulo = formatarHorarioCurto(turma.diaSemana, turma.horaInicio);
+    if (
+      !window.confirm(
+        `Cancelar a matrícula do aluno na turma de ${rotulo}? As aulas futuras dessa turma serão canceladas.`
+      )
+    )
+      return;
+
+    setAcaoErro(null);
+    setCancelandoTurmaId(turma.id);
+    removerAlunoDaTurma(turma.id, aluno.id)
+      .then(carregarTudo)
+      .catch(() => setAcaoErro("Não foi possível cancelar a matrícula na turma."))
+      .finally(() => setCancelandoTurmaId(null));
   }
 
   function abrirModalRemarcar(aula) {
@@ -244,6 +344,47 @@ export default function DadosAluno() {
       .finally(() => setVinculandoPlano(false));
   }
 
+  function abrirModalTurma() {
+    setErroVincularTurma(null);
+    const idsDoAluno = new Set(turmasDoAluno.map((t) => t.id));
+
+    listarTurmas()
+      .then((turmas) =>
+        setTurmasParaVincular(
+          (turmas ?? []).filter((t) => t.ativa && !idsDoAluno.has(t.id))
+        )
+      )
+      .catch(() =>
+        setErroVincularTurma("Não foi possível carregar as turmas disponíveis.")
+      );
+    setTurmaParaVincularSelecionada("");
+    setModalTurmaAberto(true);
+  }
+
+  function fecharModalTurma() {
+    setModalTurmaAberto(false);
+    setErroVincularTurma(null);
+  }
+
+  function executarVincularTurma(event) {
+    event.preventDefault();
+    if (!turmaParaVincularSelecionada) return;
+
+    setErroVincularTurma(null);
+    setVinculandoTurma(true);
+    adicionarAlunoNaTurma(turmaParaVincularSelecionada, aluno.id)
+      .then(() => {
+        fecharModalTurma();
+        carregarTudo();
+      })
+      .catch((erro) =>
+        setErroVincularTurma(
+          erro.message || "Não foi possível vincular o aluno a essa turma."
+        )
+      )
+      .finally(() => setVinculandoTurma(false));
+  }
+
   function executarRemarcar(event) {
     event.preventDefault();
     if (!turmaDestinoSelecionada || !aulaParaRemarcar) return;
@@ -287,6 +428,11 @@ export default function DadosAluno() {
 
   const planoAtivo = aluno?.planos?.find((p) => p.ativo);
 
+  // Aulas canceladas não representam mais um compromisso — seja porque foram
+  // canceladas avulsas ou porque o aluno trocou de turma, elas não têm mais
+  // lugar numa lista de "aulas agendadas".
+  const aulasVisiveis = aulas.filter((item) => item.status !== "CANCELADA");
+
   return (
     <div className={styles["pagina-dados-aluno"]}>
       <Navbar />
@@ -325,6 +471,13 @@ export default function DadosAluno() {
                   >
                     {aluno.ativo ? "Ativo" : "Inativo"}
                   </span>
+                  <button
+                    className={styles["botao-editar-ficha"]}
+                    onClick={abrirModalDados}
+                  >
+                    <FiEdit2 size={14} />
+                    Editar dados
+                  </button>
                 </div>
 
                 <div className={styles["grade-campos"]}>
@@ -363,43 +516,79 @@ export default function DadosAluno() {
                       </span>
                     </div>
                   </div>
+                </div>
 
-                  <div className={styles["campo-editavel"]}>
-                    <div>
-                      <span className={styles["rotulo-campo-perfil"]}>
-                        Plano
+                <div className={styles["linha-plano-turma"]}>
+                    <div className={styles["resumo-plano-turma"]}>
+                      <span className={styles["item-resumo"]}>
+                        <span className={styles["rotulo-resumo"]}>Plano:</span>{" "}
+                        {planoAtivo ? (
+                          <Link to="/planos" className={styles["link-inline"]}>
+                            {planoAtivo.nome} · {planoAtivo.frequenciaSemanal}x/semana
+                          </Link>
+                        ) : (
+                          "Sem plano ativo"
+                        )}
                       </span>
-                      <span className={styles["valor-campo-perfil"]}>
-                        {planoAtivo
-                          ? `${planoAtivo.nome} · ${planoAtivo.frequenciaSemanal}x/semana`
-                          : "Sem plano ativo"}
+
+                      <span className={styles["item-resumo"]}>
+                        <span className={styles["rotulo-resumo"]}>Turma:</span>
+                        {turmasDoAluno.length > 0 ? (
+                          <span className={styles["lista-turmas-aluno"]}>
+                            {turmasDoAluno.map((turma) => (
+                              <span
+                                className={styles["chip-turma"]}
+                                key={turma.id}
+                              >
+                                <Link
+                                  to={`/turmas/${turma.id}`}
+                                  className={styles["link-chip-turma"]}
+                                  title="Ver turma"
+                                >
+                                  <FiUsers size={11} />
+                                  {formatarHorarioCurto(
+                                    turma.diaSemana,
+                                    turma.horaInicio
+                                  )}
+                                </Link>
+                                <button
+                                  className={styles["botao-cancelar-turma"]}
+                                  onClick={() => executarCancelarTurma(turma)}
+                                  disabled={cancelandoTurmaId === turma.id}
+                                  title="Cancelar matrícula nessa turma"
+                                >
+                                  <FiXCircle size={12} />
+                                </button>
+                              </span>
+                            ))}
+                          </span>
+                        ) : (
+                          "—"
+                        )}
                       </span>
                     </div>
-                    <button
-                      className={styles["botao-vincular-plano"]}
-                      onClick={abrirModalPlano}
-                      title="Vincular plano"
-                    >
-                      <FiPlus size={13} />
-                      {planoAtivo ? "Trocar plano" : "Vincular plano"}
-                    </button>
-                  </div>
 
-                  <div className={styles["campo-editavel"]}>
-                    <div>
-                      <span className={styles["rotulo-campo-perfil"]}>
-                        Turma
-                      </span>
-                      <span className={styles["valor-campo-perfil"]}>
-                        {turmasDoAluno.length > 0
-                          ? turmasDoAluno.join(" / ")
-                          : "—"}
-                      </span>
+                    <div className={styles["acoes-plano-turma"]}>
+                      <button
+                        className={styles["botao-acao-principal"]}
+                        onClick={abrirModalPlano}
+                        title="Vincular plano"
+                      >
+                        <FiPlus size={14} />
+                        {planoAtivo ? "Trocar plano" : "Vincular plano"}
+                      </button>
+                      <button
+                        className={styles["botao-acao-principal"]}
+                        onClick={abrirModalTurma}
+                        title="Vincular a uma nova turma"
+                      >
+                        <FiPlus size={14} />
+                        Vincular turma
+                      </button>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
 
             <div className={styles["cartao-ficha"]}>
               <div className={styles["cabecalho-secao"]}>
@@ -425,7 +614,7 @@ export default function DadosAluno() {
                 </div>
               </div>
 
-              {aulas.length === 0 ? (
+              {aulasVisiveis.length === 0 ? (
                 <p className={styles["mensagem-info"]}>
                   Nenhuma aula agendada para este aluno ainda.
                 </p>
@@ -438,22 +627,20 @@ export default function DadosAluno() {
                     <span className={styles["coluna-acoes"]}>Ações</span>
                   </div>
 
-                  {aulas.map((item) => (
+                  {aulasVisiveis.map((item) => (
                     <div className={styles["linha-aula"]} key={item.id}>
                       <span className={styles["turma-aula"]}>
                         {formatarHorario(item.turmaDiaSemana, item.turmaHoraInicio)}
                       </span>
 
                       <span>
-                        {item.reposicao ? (
-                          <span className={styles["badge-reposicao"]}>
-                            Reposição
-                          </span>
-                        ) : (
-                          <span className={styles["status-normal"]}>
-                            {ROTULOS_STATUS[item.status] ?? item.status}
-                          </span>
-                        )}
+                        <span
+                          className={`${styles.badgeStatus} ${
+                            styles[statusDaAula(item).estilo]
+                          }`}
+                        >
+                          {statusDaAula(item).rotulo}
+                        </span>
                       </span>
 
                       <span className={styles["data-aula"]}>
@@ -545,6 +732,102 @@ export default function DadosAluno() {
                   disabled={salvandoFicha}
                 >
                   {salvandoFicha ? "Salvando…" : "Salvar"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {modalDadosAberto && (
+        <div className={styles["fundo-modal"]} onClick={fecharModalDados}>
+          <div
+            className={styles["caixa-modal"]}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className={styles["titulo-modal"]}>Editar dados do aluno</h2>
+
+            {erroDados && <p className={styles["mensagem-erro"]}>{erroDados}</p>}
+
+            <form onSubmit={executarSalvarDados}>
+              <div className={styles["grupo-campo"]}>
+                <label className={styles["rotulo-campo"]} htmlFor="nomeAluno">
+                  Nome
+                </label>
+                <input
+                  id="nomeAluno"
+                  className={styles["input-modal"]}
+                  value={formDados.nome}
+                  onChange={setValorFormDados("nome")}
+                  required
+                />
+              </div>
+
+              <div className={styles["grupo-campo"]}>
+                <label className={styles["rotulo-campo"]} htmlFor="telefoneAluno">
+                  Telefone
+                </label>
+                <input
+                  id="telefoneAluno"
+                  className={styles["input-modal"]}
+                  value={formDados.telefone}
+                  onChange={setValorFormDados("telefone")}
+                />
+              </div>
+
+              <div className={styles["grupo-campo"]}>
+                <label className={styles["rotulo-campo"]} htmlFor="emailAluno">
+                  E-mail
+                </label>
+                <input
+                  id="emailAluno"
+                  type="email"
+                  className={styles["input-modal"]}
+                  value={formDados.email}
+                  onChange={setValorFormDados("email")}
+                  required
+                />
+              </div>
+
+              <div className={styles["grupo-campo"]}>
+                <label className={styles["rotulo-campo"]} htmlFor="cpfAluno">
+                  CPF
+                </label>
+                <input
+                  id="cpfAluno"
+                  className={styles["input-modal"]}
+                  value={formDados.cpf}
+                  onChange={setValorFormDados("cpf")}
+                />
+              </div>
+
+              <div className={styles["grupo-campo"]}>
+                <label className={styles["rotulo-campo"]} htmlFor="dataNascimentoAluno">
+                  Data de nascimento
+                </label>
+                <input
+                  id="dataNascimentoAluno"
+                  type="date"
+                  className={styles["input-modal"]}
+                  value={formDados.dataNascimento}
+                  onChange={setValorFormDados("dataNascimento")}
+                />
+              </div>
+
+              <div className={styles["acoes-modal"]}>
+                <button
+                  type="button"
+                  className={styles["botao-cancelar"]}
+                  onClick={fecharModalDados}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className={styles["botao-salvar"]}
+                  disabled={salvandoDados}
+                >
+                  {salvandoDados ? "Salvando…" : "Salvar"}
                 </button>
               </div>
             </form>
@@ -667,6 +950,71 @@ export default function DadosAluno() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {modalTurmaAberto && (
+        <div className={styles["fundo-modal"]} onClick={fecharModalTurma}>
+          <div
+            className={styles["caixa-modal"]}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className={styles["titulo-modal"]}>Vincular a uma turma</h2>
+
+            {erroVincularTurma && (
+              <p className={styles["mensagem-erro"]}>{erroVincularTurma}</p>
+            )}
+
+            {turmasParaVincular.length === 0 && !erroVincularTurma ? (
+              <p className={styles["mensagem-info"]}>
+                Não há turmas ativas disponíveis para vincular — o aluno já
+                está em todas, ou nenhuma turma ativa foi cadastrada.
+              </p>
+            ) : (
+              <form onSubmit={executarVincularTurma}>
+                <div className={styles["grupo-campo"]}>
+                  <label className={styles["rotulo-campo"]} htmlFor="turma">
+                    Turma
+                  </label>
+                  <select
+                    id="turma"
+                    className={styles["input-modal"]}
+                    value={turmaParaVincularSelecionada}
+                    onChange={(e) =>
+                      setTurmaParaVincularSelecionada(e.target.value)
+                    }
+                    required
+                  >
+                    <option value="" disabled>
+                      Selecione uma turma
+                    </option>
+                    {turmasParaVincular.map((turma) => (
+                      <option value={turma.id} key={turma.id}>
+                        {formatarHorario(turma.diaSemana, turma.horaInicio)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className={styles["acoes-modal"]}>
+                  <button
+                    type="button"
+                    className={styles["botao-cancelar"]}
+                    onClick={fecharModalTurma}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className={styles["botao-salvar"]}
+                    disabled={vinculandoTurma || !turmaParaVincularSelecionada}
+                  >
+                    {vinculandoTurma ? "Vinculando…" : "Vincular"}
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}

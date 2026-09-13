@@ -367,6 +367,7 @@
   text-align: right;
   display: flex;
   justify-content: flex-end;
+  gap: 8px;
 }
 
 .linha-aluno {
@@ -386,6 +387,12 @@
   font-family: "Inter-Medium", sans-serif;
   font-size: 14.4px;
   font-weight: 500;
+  text-decoration: none;
+  width: fit-content;
+}
+
+.nome-com-avatar:hover {
+  color: #d97960;
 }
 
 .avatar-aluno {
@@ -402,21 +409,73 @@
   flex-shrink: 0;
 }
 
-.badge-reposicao {
+.badgeStatus {
   display: inline-block;
-  background: #fef3c7;
-  color: #92580a;
   font-family: "Inter-Medium", sans-serif;
   font-size: 12px;
   font-weight: 500;
-  padding: 2px 12px;
+  padding: 2px 10px;
   border-radius: 999px;
+}
+
+.badgeAgendada {
+  background: #ece7f5;
+  color: #6a5a8a;
+}
+
+.badgeReposicao {
+  background: #fef3c7;
+  color: #92580a;
+}
+
+.badgeCancelada {
+  background: #f0f0f0;
+  color: #999999;
+}
+
+.badgeAusente {
+  background: #fbe9e5;
+  color: #b3402c;
 }
 
 .status-normal {
   color: #999999;
   font-family: "Inter-Regular", sans-serif;
   font-size: 13.12px;
+}
+
+.texto-desabilitado {
+  color: #cccccc;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 13px;
+}
+
+.botao-remarcar,
+.botao-cancelar-aula {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 0.8px solid #e8e8e8;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  flex-shrink: 0;
+}
+
+.botao-remarcar {
+  color: #7a6a9a;
+}
+
+.botao-cancelar-aula {
+  color: #c85a54;
+}
+
+.botao-remarcar:hover,
+.botao-cancelar-aula:hover {
+  opacity: 0.8;
 }
 
 .telefone-aluno {
@@ -474,6 +533,14 @@
   font-size: 20px;
   font-weight: 500;
   margin-bottom: 24px;
+}
+
+.texto-explicativo-modal {
+  color: #999999;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 13px;
+  margin-bottom: 20px;
+  line-height: 1.5;
 }
 
 .grupo-campo {
@@ -544,6 +611,98 @@
 .botao-salvar:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* Seção de próximas ocorrências */
+
+.secao-ocorrencias {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.lista-ocorrencias {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cartao-ocorrencia {
+  background: #ffffff;
+  border: 0.8px solid #e8e8e8;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.item-ocorrencia {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 14px 20px;
+  color: #5a4f4d;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.data-com-icone {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.data-ocorrencia {
+  font-family: "Inter-Medium", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #2c2c2c;
+  text-transform: capitalize;
+}
+
+.ocupacao-ocorrencia {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.badge-ocupacao {
+  background: #f0e6e0;
+  color: #5a4f4d;
+  font-family: "Inter-Medium", sans-serif;
+  font-size: 11.5px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+.icone-expandir {
+  color: #999999;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.icone-expandir-aberto {
+  transform: rotate(180deg);
+}
+
+.conteudo-ocorrencia {
+  padding: 0 20px 20px;
+  border-top: 0.8px solid #e8e8e8;
+}
+
+.conteudo-ocorrencia .tabela-alunos {
+  border: 0.8px solid #e8e8e8;
+  margin-top: 16px;
+}
+
+.conteudo-ocorrencia .mensagem-info {
+  margin-top: 16px;
 }
 
 @media (max-width: 800px) {
