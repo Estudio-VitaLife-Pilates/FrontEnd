@@ -5,6 +5,7 @@ import { Navbar } from "../../components/Navbar/Navbar";
 import {
   buscarVagasTurma,
   cadastrarTurma,
+  listarAlunosDaTurma,
   listarTurmas,
 } from "../../api/turmas";
 import { listarProfessores } from "../../api/professores";
@@ -97,9 +98,15 @@ export default function Turmas() {
         setProfessores(dadosProfessores ?? []);
         return Promise.all(
           (dadosTurmas ?? []).map((turma) =>
-            buscarVagasTurma(turma.id).then((vagas) => ({
+            Promise.all([
+              buscarVagasTurma(turma.id),
+              listarAlunosDaTurma(turma.id),
+            ]).then(([vagas, detalhes]) => ({
               ...turma,
               alunosMatriculados: turma.capacidadeMax - vagas,
+              alunoIds: (detalhes?.alunos ?? [])
+                .filter((aluno) => aluno.alunoTurmaAtivo)
+                .map((aluno) => aluno.id),
             }))
           )
         );
@@ -125,10 +132,13 @@ export default function Turmas() {
   const totalTurmas = turmas.length;
   const totalAtivas = turmas.filter((t) => t.ativa).length;
   const totalInativas = totalTurmas - totalAtivas;
-  const totalAlunos = turmas.reduce(
-    (soma, t) => soma + (t.alunosMatriculados ?? 0),
-    0
-  );
+  const totalAlunos = useMemo(() => {
+    const idsUnicos = new Set();
+    turmas.forEach((turma) =>
+      (turma.alunoIds ?? []).forEach((id) => idsUnicos.add(id))
+    );
+    return idsUnicos.size;
+  }, [turmas]);
 
   const grupos = useMemo(() => {
     const mapa = new Map();
@@ -226,7 +236,7 @@ export default function Turmas() {
               <div className={styles["cartao-kpi"]}>
                 <span className={styles["rotulo-kpi"]}>Total de alunos</span>
                 <span className={styles["valor-kpi"]}>{totalAlunos}</span>
-                <span className={styles["legenda-kpi"]}>em todas as turmas</span>
+                <span className={styles["legenda-kpi"]}>alunos únicos matriculados</span>
               </div>
             </div>
 
