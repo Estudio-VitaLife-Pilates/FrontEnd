@@ -133,6 +133,7 @@
   color: #2c2c2c;
   font-family: "Poppins-Medium", sans-serif;
   font-size: 25.6px;
+  overflow-wrap: break-word;
 }
 
 .legenda-kpi {
@@ -194,8 +195,12 @@
   text-transform: uppercase;
 }
 
+.coluna-central {
+  text-align: center;
+}
+
 .coluna-valor {
-  text-align: right;
+  text-align: center;
 }
 
 .coluna-acoes {
@@ -211,15 +216,28 @@
   border-top: 0.8px solid #e8e8e8;
 }
 
+.celula-nome-plano {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
 .nome-plano {
   color: #2c2c2c;
   font-family: "Poppins-Medium", sans-serif;
   font-size: 16px;
 }
 
+.frequencia-plano {
+  color: #999999;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 12.5px;
+}
+
 .alunos-plano {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   color: #5a4f4d;
   font-family: "Inter-Regular", sans-serif;
@@ -240,7 +258,7 @@
 }
 
 .valor-plano {
-  text-align: right;
+  text-align: center;
   color: #2c2c2c;
   font-family: "Poppins-Medium", sans-serif;
   font-size: 16px;
@@ -398,9 +416,14 @@
     gap: 8px;
   }
 
+  .coluna-central,
   .coluna-valor,
   .valor-plano {
     text-align: left;
+  }
+
+  .alunos-plano {
+    justify-content: flex-start;
   }
 
   .acoes-plano {

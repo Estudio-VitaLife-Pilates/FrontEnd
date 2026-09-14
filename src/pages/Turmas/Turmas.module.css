@@ -59,6 +59,32 @@
   opacity: 0.9;
 }
 
+.acoes-cabecalho {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.botao-secundario {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  color: #5a4f4d;
+  border: 0.8px solid #e8e8e8;
+  border-radius: 999px;
+  padding: 8px 20px;
+  font-family: "Inter-Medium", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.botao-secundario:hover {
+  opacity: 0.8;
+}
+
 .mensagem-info {
   color: #999999;
   font-family: "Inter-Regular", sans-serif;

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import styles from "./Alunos.module.css";
 import { Navbar } from "../../components/Navbar/Navbar";
 import { cadastrarAluno, listarAlunosDetalhado } from "../../api/alunos";
@@ -37,6 +38,7 @@ const FORM_VAZIO = {
 };
 
 export default function Alunos() {
+  const navigate = useNavigate();
   const [alunos, setAlunos] = useState([]);
   const [turmasPorAluno, setTurmasPorAluno] = useState({});
   const [carregando, setCarregando] = useState(true);
@@ -226,7 +228,12 @@ export default function Alunos() {
                   const turmasDoAluno = turmasPorAluno[aluno.id] ?? [];
 
                   return (
-                    <div className={styles["linha-aluno"]} key={aluno.id}>
+                    <div
+                      className={styles["linha-aluno"]}
+                      key={aluno.id}
+                      onClick={() => navigate(`/alunos/${aluno.id}`)}
+                      style={{ cursor: "pointer" }}
+                    >
                       <div className={styles["nome-com-avatar"]}>
                         <div className={styles["avatar-aluno"]}>
                           {aluno.nome.charAt(0).toUpperCase()}

@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import styles from "./Login.module.css";
 
 import { Banner } from "../../components/LoginCadastro/Banner";
@@ -12,10 +13,12 @@ import iconeOlhoSenha from "../../assets/olhosenha.svg";
 import { login } from "../../api/usuarios";
 
 export function Login() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [exibirSenha, setExibirSenha] = useState(false);
   const [carregando, setCarregando] = useState(false);
+  const [erroLogin, setErroLogin] = useState(null);
 
   function setValorEmail(e) {
     setEmail(e.target.value);
@@ -31,6 +34,7 @@ export function Login() {
 
   async function executarLogin(event) {
     event.preventDefault();
+    setErroLogin(null);
 
     try {
       setCarregando(true);
@@ -40,11 +44,15 @@ export function Login() {
         senha,
       });
 
-      // Depois podemos colocar aqui:
-      // redirecionamento para a área do aluno.
-
+      navigate("/inicio");
     } catch (erro) {
-      alert(erro.message);
+      // A API responde 401 sem corpo legível tanto para e-mail inexistente quanto
+      // para senha errada, então nunca mostramos o texto cru do erro aqui.
+      setErroLogin(
+        erro.status === null
+          ? "Não foi possível conectar ao servidor. Tente novamente."
+          : "E-mail ou senha inválidos. Verifique os dados e tente novamente."
+      );
     } finally {
       setCarregando(false);
     }
@@ -69,6 +77,10 @@ export function Login() {
                   Entrar no sistema
                 </h1>
               </div>
+
+              {erroLogin && (
+                <p className={styles["mensagem-erro"]}>{erroLogin}</p>
+              )}
 
               <form
                 className={styles["formulario-login"]}

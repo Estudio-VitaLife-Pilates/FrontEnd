@@ -121,7 +121,7 @@ export default function Professores() {
             <div className={styles["cabecalho-tabela"]}>
               <span>Nome</span>
               <span>Telefone</span>
-              <span>Ações</span>
+              <span className={styles["coluna-acoes-cabecalho"]}>Ações</span>
             </div>
 
             <ul className={styles["lista-professores"]}>

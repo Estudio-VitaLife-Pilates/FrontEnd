@@ -61,12 +61,20 @@
     object-fit: cover;
 }
 
+.botaoSair {
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+}
+
 .iconeSair {
     color: #999999;
-    cursor: pointer;
     transition: color 0.2s ease;
 }
 
-.iconeSair:hover {
+.botaoSair:hover .iconeSair {
     color: #d97960;
 }
