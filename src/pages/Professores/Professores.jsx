@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import styles from "./Professores.module.css";
 import { Navbar } from "../../components/Navbar/Navbar";
 import {
@@ -12,6 +13,7 @@ import iconeTelefone from "../../assets/icone-telefone.svg";
 import iconeLixeira from "../../assets/icone-lixeira.svg";
 
 export default function Professores() {
+  const navigate = useNavigate();
   const [professores, setProfessores] = useState([]);
   const [busca, setBusca] = useState("");
   const [carregando, setCarregando] = useState(true);
@@ -119,12 +121,18 @@ export default function Professores() {
             <div className={styles["cabecalho-tabela"]}>
               <span>Nome</span>
               <span>Telefone</span>
-              <span>Ações</span>
+              <span className={styles["coluna-acoes-cabecalho"]}>Ações</span>
             </div>
 
             <ul className={styles["lista-professores"]}>
               {professoresFiltrados.map((professor) => (
-                <li className={styles["cartao-professor"]} key={professor.id}>
+                <li
+                  className={styles["cartao-professor"]}
+                  key={professor.id}
+                  onClick={() => navigate(`/professores/${professor.id}`)}
+                  role="button"
+                  tabIndex={0}
+                >
                   <div className={styles["info-professor"]}>
                     <div className={styles["avatar-professor"]}>
                       {professor.nome.charAt(0).toUpperCase()}
@@ -149,7 +157,10 @@ export default function Professores() {
                   <div className={styles["acoes-professor"]}>
                     <button
                       className={styles["botao-remover"]}
-                      onClick={() => executarRemocao(professor.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        executarRemocao(professor.id);
+                      }}
                       aria-label={`Remover ${professor.nome}`}
                     >
                       <img src={iconeLixeira} alt="" />

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styles from './Cadastro.module.css';
 import { Banner } from '../../components/LoginCadastro/Banner';
 import { LogoTitulo } from '../../components/LoginCadastro/LogoTitulo';
@@ -6,8 +7,10 @@ import iconePerfil from '../../assets/iconeperfil.svg';
 import iconeEmail from '../../assets/email.svg';
 import iconeCadeado from '../../assets/cadeado.svg';
 import iconeOlhoSenha from '../../assets/olhosenha.svg';
+import { cadastro } from '../../api/usuarios';
 
 export default function Cadastro() {
+  const navigate = useNavigate();
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
@@ -34,9 +37,9 @@ export default function Cadastro() {
   function setValorExibirConfirmarSenha(){
     setExibirConfirmarSenha(!exibirConfirmarSenha)
   }
+  
 
-
-  const executarCadastro = (event) => {
+  const executarCadastro = async (event) => {
     event.preventDefault();
 
     if (senha !== confirmarSenha) {
@@ -44,7 +47,14 @@ export default function Cadastro() {
       return;
     }
 
-    console.log('Cadastro solicitado:', { nome, email, senha });
+    try {
+      await cadastro({ nome, email, senha });
+      alert("Cadastro realizado com sucesso!");
+      navigate('/');
+      
+    } catch (erro) {
+      alert(erro.message);
+    }
 
   };
 
