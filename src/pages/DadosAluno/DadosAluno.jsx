@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import styles from "./DadosAluno.module.css";
 import { Navbar } from "../../components/Navbar/Navbar";
+import { CalendarioMensal } from "../../components/CalendarioMensal/CalendarioMensal";
 import {
   associarPlano,
   buscarAlunoDetalhadoPorId,
@@ -20,7 +21,7 @@ import {
   cancelarAulaDoAluno,
   listarAulasDoAluno,
   registrarReposicao,
-  buscarProximaAulaInfoDaTurma,
+  buscarProximasAulasDaTurma,
 } from "../../api/aulas";
 import {
   FiArrowLeft,
@@ -133,6 +134,9 @@ export default function DadosAluno() {
   const [aulaParaRemarcar, setAulaParaRemarcar] = useState(null);
   const [turmasDisponiveis, setTurmasDisponiveis] = useState([]);
   const [turmaDestinoSelecionada, setTurmaDestinoSelecionada] = useState("");
+  const [aulasDaTurmaDestino, setAulasDaTurmaDestino] = useState([]);
+  const [carregandoAulasDestino, setCarregandoAulasDestino] = useState(false);
+  const [aulaDestinoSelecionada, setAulaDestinoSelecionada] = useState(null);
   const [remarcando, setRemarcando] = useState(false);
   const [erroRemarcar, setErroRemarcar] = useState(null);
 
@@ -311,11 +315,31 @@ export default function DadosAluno() {
       .catch(() => setErroRemarcar("Não foi possível carregar as turmas disponíveis."));
     setAulaParaRemarcar(aula);
     setTurmaDestinoSelecionada("");
+    setAulasDaTurmaDestino([]);
+    setAulaDestinoSelecionada(null);
     setModalRemarcarAberto(true);
+  }
+
+  function selecionarTurmaDestino(turmaId) {
+    setTurmaDestinoSelecionada(turmaId);
+    setAulaDestinoSelecionada(null);
+    setAulasDaTurmaDestino([]);
+
+    if (!turmaId) return;
+
+    setCarregandoAulasDestino(true);
+    buscarProximasAulasDaTurma(turmaId)
+      .then((dados) => setAulasDaTurmaDestino(dados ?? []))
+      .catch(() =>
+        setErroRemarcar("Não foi possível carregar as aulas dessa turma.")
+      )
+      .finally(() => setCarregandoAulasDestino(false));
   }
 
   function fecharModalRemarcar() {
     setModalRemarcarAberto(false);
+    setAulasDaTurmaDestino([]);
+    setAulaDestinoSelecionada(null);
     setAulaParaRemarcar(null);
     setErroRemarcar(null);
   }
@@ -396,40 +420,25 @@ export default function DadosAluno() {
 
   function executarRemarcar(event) {
     event.preventDefault();
-    if (!turmaDestinoSelecionada || !aulaParaRemarcar) return;
+    if (!aulaDestinoSelecionada || !aulaParaRemarcar) return;
+
+    if (String(aulaDestinoSelecionada.id) === String(aulaParaRemarcar.aulaId)) {
+      setErroRemarcar(
+        "Essa é a mesma aula que o aluno já tem marcada. Escolha outra data."
+      );
+      return;
+    }
 
     setErroRemarcar(null);
     setRemarcando(true);
-    buscarProximaAulaInfoDaTurma(turmaDestinoSelecionada)
-      .then((proximaAula) => {
-        const aulaDestinoId = proximaAula?.id;
-
-        if (!aulaDestinoId) {
-          throw new Error(
-            "Essa turma não tem uma próxima aula agendada. Escolha outra turma."
-          );
-        }
-
-        if (String(aulaDestinoId) === String(aulaParaRemarcar.aulaId)) {
-          throw new Error(
-            "Essa é a mesma aula que o aluno já tem marcada. Escolha uma turma diferente para a reposição."
-          );
-        }
-
-        return registrarReposicao(
-          aulaDestinoId,
-          aluno.id,
-          aulaParaRemarcar.aulaId
-        );
-      })
+    registrarReposicao(aulaDestinoSelecionada.id, aluno.id, aulaParaRemarcar.aulaId)
       .then(() => {
         fecharModalRemarcar();
         carregarTudo();
       })
       .catch((erro) =>
         setErroRemarcar(
-          erro.message ||
-            "Não foi possível remarcar a aula. A turma escolhida pode não ter uma próxima aula definida."
+          erro.message || "Não foi possível remarcar a aula."
         )
       )
       .finally(() => setRemarcando(false));
@@ -873,9 +882,8 @@ export default function DadosAluno() {
           >
             <h2 className={styles["titulo-modal"]}>Remarcar aula (reposição)</h2>
             <p className={styles["texto-explicativo-modal"]}>
-              Escolha a turma em que o aluno vai fazer a aula de reposição. A
-              vaga será na próxima aula dessa turma — se ainda não existir
-              nenhuma aula futura marcada, ela será criada automaticamente.
+              Escolha a turma e a data em que o aluno vai fazer a aula de
+              reposição.
             </p>
 
             {erroRemarcar && (
@@ -891,7 +899,7 @@ export default function DadosAluno() {
                   id="turmaDestino"
                   className={styles["input-modal"]}
                   value={turmaDestinoSelecionada}
-                  onChange={(e) => setTurmaDestinoSelecionada(e.target.value)}
+                  onChange={(e) => selecionarTurmaDestino(e.target.value)}
                   required
                 >
                   <option value="" disabled>
@@ -905,6 +913,21 @@ export default function DadosAluno() {
                 </select>
               </div>
 
+              {turmaDestinoSelecionada && (
+                <div className={styles["grupo-campo"]}>
+                  <label className={styles["rotulo-campo"]}>Data da reposição</label>
+                  {carregandoAulasDestino ? (
+                    <p className={styles["mensagem-info"]}>Carregando datas…</p>
+                  ) : (
+                    <CalendarioMensal
+                      aulas={aulasDaTurmaDestino}
+                      aulaSelecionadaId={aulaDestinoSelecionada?.id}
+                      onSelecionarAula={setAulaDestinoSelecionada}
+                    />
+                  )}
+                </div>
+              )}
+
               <div className={styles["acoes-modal"]}>
                 <button
                   type="button"
@@ -916,7 +939,7 @@ export default function DadosAluno() {
                 <button
                   type="submit"
                   className={styles["botao-salvar"]}
-                  disabled={remarcando || !turmaDestinoSelecionada}
+                  disabled={remarcando || !aulaDestinoSelecionada}
                 >
                   {remarcando ? "Remarcando…" : "Remarcar"}
                 </button>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import styles from "./TurmaEspecifica.module.css";
 import { Navbar } from "../../components/Navbar/Navbar";
+import { CalendarioMensal } from "../../components/CalendarioMensal/CalendarioMensal";
 import {
   buscarTurmaPorId,
   desativarTurma,
@@ -18,7 +19,6 @@ import {
   removerAlunoDaAula,
   cancelarAulaDoAluno,
   registrarReposicao,
-  buscarProximaAulaInfoDaTurma,
 } from "../../api/aulas";
 import { listarProfessores } from "../../api/professores";
 import { listarAlunos } from "../../api/alunos";
@@ -31,7 +31,6 @@ import {
   FiUserPlus,
   FiX,
   FiPower,
-  FiChevronDown,
   FiRepeat,
 } from "react-icons/fi";
 
@@ -135,6 +134,9 @@ export default function TurmaEspecifica() {
   const [aulaParaRemarcar, setAulaParaRemarcar] = useState(null);
   const [turmasDisponiveis, setTurmasDisponiveis] = useState([]);
   const [turmaDestinoSelecionada, setTurmaDestinoSelecionada] = useState("");
+  const [aulasDaTurmaDestino, setAulasDaTurmaDestino] = useState([]);
+  const [carregandoAulasDestino, setCarregandoAulasDestino] = useState(false);
+  const [aulaDestinoSelecionada, setAulaDestinoSelecionada] = useState(null);
   const [remarcando, setRemarcando] = useState(false);
   const [erroRemarcar, setErroRemarcar] = useState(null);
 
@@ -311,6 +313,8 @@ export default function TurmaEspecifica() {
       aulaOrigemDaTurma: aulaId,
     });
     setTurmaDestinoSelecionada("");
+    setAulasDaTurmaDestino([]);
+    setAulaDestinoSelecionada(null);
     setModalRemarcarAberto(true);
   }
 
@@ -318,46 +322,51 @@ export default function TurmaEspecifica() {
     setModalRemarcarAberto(false);
     setAulaParaRemarcar(null);
     setErroRemarcar(null);
+    setAulasDaTurmaDestino([]);
+    setAulaDestinoSelecionada(null);
+  }
+
+  function selecionarTurmaDestino(turmaId) {
+    setTurmaDestinoSelecionada(turmaId);
+    setAulaDestinoSelecionada(null);
+    setAulasDaTurmaDestino([]);
+
+    if (!turmaId) return;
+
+    setCarregandoAulasDestino(true);
+    buscarProximasAulasDaTurma(turmaId)
+      .then((dados) => setAulasDaTurmaDestino(dados ?? []))
+      .catch(() =>
+        setErroRemarcar("Não foi possível carregar as aulas dessa turma.")
+      )
+      .finally(() => setCarregandoAulasDestino(false));
   }
 
   function executarRemarcar(event) {
     event.preventDefault();
-    if (!turmaDestinoSelecionada || !aulaParaRemarcar) return;
+    if (!aulaDestinoSelecionada || !aulaParaRemarcar) return;
+
+    if (String(aulaDestinoSelecionada.id) === String(aulaParaRemarcar.aulaOrigemId)) {
+      setErroRemarcar(
+        "Essa é a mesma aula que o aluno já tem marcada. Escolha outra data."
+      );
+      return;
+    }
 
     setErroRemarcar(null);
     setRemarcando(true);
-    buscarProximaAulaInfoDaTurma(turmaDestinoSelecionada)
-      .then((proximaAula) => {
-        const aulaDestinoId = proximaAula?.id;
-
-        if (!aulaDestinoId) {
-          throw new Error(
-            "Não foi possível encontrar a próxima aula dessa turma."
-          );
-        }
-
-        if (String(aulaDestinoId) === String(aulaParaRemarcar.aulaOrigemId)) {
-          throw new Error(
-            "Essa é a mesma aula que o aluno já tem marcada. Escolha uma turma diferente para a reposição."
-          );
-        }
-
-        return registrarReposicao(
-          aulaDestinoId,
-          aulaParaRemarcar.alunoId,
-          aulaParaRemarcar.aulaOrigemId
-        );
-      })
+    registrarReposicao(
+      aulaDestinoSelecionada.id,
+      aulaParaRemarcar.alunoId,
+      aulaParaRemarcar.aulaOrigemId
+    )
       .then(() => {
         invalidarCacheDaAula(aulaParaRemarcar.aulaOrigemDaTurma);
         fecharModalRemarcar();
         carregarTudo();
       })
       .catch((erro) =>
-        setErroRemarcar(
-          erro.message ||
-            "Não foi possível remarcar a aula. A turma escolhida pode não ter uma próxima aula definida."
-        )
+        setErroRemarcar(erro.message || "Não foi possível remarcar a aula.")
       )
       .finally(() => setRemarcando(false));
   }
@@ -583,124 +592,114 @@ export default function TurmaEspecifica() {
                 </div>
               </div>
 
-              {proximasOcorrencias.length === 0 ? (
-                <p className={styles["mensagem-info"]}>
-                  Nenhuma próxima aula gerada ainda para esta turma.
-                </p>
-              ) : (
-                <div className={styles["lista-ocorrencias"]}>
-                  {proximasOcorrencias.map((aula) => {
-                    const aberta = ocorrenciaAberta === aula.id;
-                    const alunosDaAula = (alunosPorAula[aula.id] ?? []).filter(
-                      (aa) => aa.status !== "CANCELADA"
-                    );
-                    const alunosCarregados = alunosPorAula[aula.id] !== undefined;
-                    const carregandoEssa = carregandoAlunosDaAula === aula.id;
-                    const ocupacao = ocupacaoPorAula[aula.id];
+              <CalendarioMensal
+                aulas={proximasOcorrencias}
+                aulaSelecionadaId={ocorrenciaAberta}
+                onSelecionarAula={(aula) => alternarOcorrencia(aula.id)}
+              />
 
-                    return (
-                      <div className={styles["cartao-ocorrencia"]} key={aula.id}>
-                        <button
-                          type="button"
-                          className={styles["item-ocorrencia"]}
-                          onClick={() => alternarOcorrencia(aula.id)}
-                          aria-expanded={aberta}
-                        >
-                          <span className={styles["data-com-icone"]}>
-                            <FiClock size={14} />
-                            <span className={styles["data-ocorrencia"]}>
-                              {formatarDataCompleta(aula.dataAula)}
-                            </span>
+              {ocorrenciaAberta &&
+                (() => {
+                  const aulaSelecionada = proximasOcorrencias.find(
+                    (aula) => aula.id === ocorrenciaAberta
+                  );
+                  const alunosDaAula = (alunosPorAula[ocorrenciaAberta] ?? []).filter(
+                    (aa) => aa.status !== "CANCELADA"
+                  );
+                  const alunosCarregados = alunosPorAula[ocorrenciaAberta] !== undefined;
+                  const carregandoEssa = carregandoAlunosDaAula === ocorrenciaAberta;
+                  const ocupacao = ocupacaoPorAula[ocorrenciaAberta];
+
+                  return (
+                    <div className={styles["cartao-ocorrencia"]}>
+                      <div className={styles["item-ocorrencia"]}>
+                        <span className={styles["data-com-icone"]}>
+                          <FiClock size={14} />
+                          <span className={styles["data-ocorrencia"]}>
+                            {aulaSelecionada
+                              ? formatarDataCompleta(aulaSelecionada.dataAula)
+                              : "—"}
                           </span>
-                          <span className={styles["ocupacao-ocorrencia"]}>
-                            {ocupacao !== undefined && ocupacao !== null && turma && (
-                              <span className={styles["badge-ocupacao"]}>
-                                {turma.capacidadeMax - ocupacao}/{turma.capacidadeMax}
-                              </span>
-                            )}
-                            <FiChevronDown
-                              size={16}
-                              className={`${styles["icone-expandir"]} ${
-                                aberta ? styles["icone-expandir-aberto"] : ""
-                              }`}
-                            />
+                        </span>
+                        {ocupacao !== undefined && ocupacao !== null && turma && (
+                          <span className={styles["badge-ocupacao"]}>
+                            {turma.capacidadeMax - ocupacao}/{turma.capacidadeMax}
                           </span>
-                        </button>
+                        )}
+                      </div>
 
-                        {aberta && (
-                          <div className={styles["conteudo-ocorrencia"]}>
-                            {carregandoEssa ? (
-                              <p className={styles["mensagem-info"]}>Carregando alunos…</p>
-                            ) : !alunosCarregados || alunosDaAula.length === 0 ? (
-                              <p className={styles["mensagem-info"]}>
-                                Nenhum aluno confirmado nessa aula ainda.
-                              </p>
-                            ) : (
-                              <div className={styles["tabela-alunos"]}>
-                                <div className={styles["linha-cabecalho-alunos"]}>
-                                  <span>Nome</span>
-                                  <span>Status</span>
-                                  <span>Telefone</span>
-                                  <span className={styles["coluna-acoes"]}>Ações</span>
-                                </div>
+                      <div className={styles["conteudo-ocorrencia"]}>
+                        {carregandoEssa ? (
+                          <p className={styles["mensagem-info"]}>Carregando alunos…</p>
+                        ) : !alunosCarregados || alunosDaAula.length === 0 ? (
+                          <p className={styles["mensagem-info"]}>
+                            Nenhum aluno confirmado nessa aula ainda.
+                          </p>
+                        ) : (
+                          <div className={styles["tabela-alunos"]}>
+                            <div className={styles["linha-cabecalho-alunos"]}>
+                              <span>Nome</span>
+                              <span>Status</span>
+                              <span>Telefone</span>
+                              <span className={styles["coluna-acoes"]}>Ações</span>
+                            </div>
 
-                                {alunosDaAula.map((aa) => (
-                                  <div className={styles["linha-aluno"]} key={aa.id}>
-                                    <Link
-                                      to={`/alunos/${aa.alunoId}`}
-                                      className={styles["nome-com-avatar"]}
-                                    >
-                                      <div className={styles["avatar-aluno"]}>
-                                        {aa.alunoNome
-                                          .split(" ")
-                                          .slice(0, 2)
-                                          .map((p) => p.charAt(0).toUpperCase())
-                                          .join("")}
-                                      </div>
-                                      <span>{aa.alunoNome}</span>
-                                    </Link>
-                                    <span>
-                                      <span
-                                        className={`${styles.badgeStatus} ${
-                                          styles[statusDaAula(aa).estilo]
-                                        }`}
-                                      >
-                                        {statusDaAula(aa).rotulo}
-                                      </span>
-                                    </span>
-                                    <span className={styles["telefone-aluno"]}>
-                                      <FiPhone size={14} />
-                                      {aa.alunoTelefone}
-                                    </span>
-                                    <div className={styles["coluna-acoes"]}>
-                                      <button
-                                        className={styles["botao-remarcar"]}
-                                        onClick={() => abrirModalRemarcar(aa, aula.id)}
-                                        title="Remarcar (reposição)"
-                                        aria-label={`Remarcar ${aa.alunoNome}`}
-                                      >
-                                        <FiRepeat size={14} />
-                                      </button>
-                                      <button
-                                        className={styles["botao-cancelar-aula"]}
-                                        onClick={() => executarCancelarAulaAluno(aa, aula.id)}
-                                        title="Cancelar"
-                                        aria-label={`Cancelar aula de ${aa.alunoNome}`}
-                                      >
-                                        <FiX size={14} />
-                                      </button>
-                                    </div>
+                            {alunosDaAula.map((aa) => (
+                              <div className={styles["linha-aluno"]} key={aa.id}>
+                                <Link
+                                  to={`/alunos/${aa.alunoId}`}
+                                  className={styles["nome-com-avatar"]}
+                                >
+                                  <div className={styles["avatar-aluno"]}>
+                                    {aa.alunoNome
+                                      .split(" ")
+                                      .slice(0, 2)
+                                      .map((p) => p.charAt(0).toUpperCase())
+                                      .join("")}
                                   </div>
-                                ))}
+                                  <span>{aa.alunoNome}</span>
+                                </Link>
+                                <span>
+                                  <span
+                                    className={`${styles.badgeStatus} ${
+                                      styles[statusDaAula(aa).estilo]
+                                    }`}
+                                  >
+                                    {statusDaAula(aa).rotulo}
+                                  </span>
+                                </span>
+                                <span className={styles["telefone-aluno"]}>
+                                  <FiPhone size={14} />
+                                  {aa.alunoTelefone}
+                                </span>
+                                <div className={styles["coluna-acoes"]}>
+                                  <button
+                                    className={styles["botao-remarcar"]}
+                                    onClick={() => abrirModalRemarcar(aa, ocorrenciaAberta)}
+                                    title="Remarcar (reposição)"
+                                    aria-label={`Remarcar ${aa.alunoNome}`}
+                                  >
+                                    <FiRepeat size={14} />
+                                  </button>
+                                  <button
+                                    className={styles["botao-cancelar-aula"]}
+                                    onClick={() =>
+                                      executarCancelarAulaAluno(aa, ocorrenciaAberta)
+                                    }
+                                    title="Cancelar"
+                                    aria-label={`Cancelar aula de ${aa.alunoNome}`}
+                                  >
+                                    <FiX size={14} />
+                                  </button>
+                                </div>
                               </div>
-                            )}
+                            ))}
                           </div>
                         )}
                       </div>
-                    );
-                  })}
-                </div>
-              )}
+                    </div>
+                  );
+                })()}
             </div>
           </>
         )}
@@ -764,10 +763,8 @@ export default function TurmaEspecifica() {
           <div className={styles["caixa-modal"]} onClick={(e) => e.stopPropagation()}>
             <h2 className={styles["titulo-modal"]}>Remarcar aula (reposição)</h2>
             <p className={styles["texto-explicativo-modal"]}>
-              Escolha a turma em que {aulaParaRemarcar?.alunoNome} vai fazer a
-              aula de reposição. A vaga será na próxima aula dessa turma — se
-              ainda não existir nenhuma aula futura marcada, ela será criada
-              automaticamente.
+              Escolha a turma e a data em que {aulaParaRemarcar?.alunoNome} vai
+              fazer a aula de reposição.
             </p>
 
             {erroRemarcar && (
@@ -783,7 +780,7 @@ export default function TurmaEspecifica() {
                   id="turmaDestino"
                   className={styles["input-modal"]}
                   value={turmaDestinoSelecionada}
-                  onChange={(e) => setTurmaDestinoSelecionada(e.target.value)}
+                  onChange={(e) => selecionarTurmaDestino(e.target.value)}
                   required
                 >
                   <option value="" disabled>
@@ -797,6 +794,21 @@ export default function TurmaEspecifica() {
                 </select>
               </div>
 
+              {turmaDestinoSelecionada && (
+                <div className={styles["grupo-campo"]}>
+                  <label className={styles["rotulo-campo"]}>Data da reposição</label>
+                  {carregandoAulasDestino ? (
+                    <p className={styles["mensagem-info"]}>Carregando datas…</p>
+                  ) : (
+                    <CalendarioMensal
+                      aulas={aulasDaTurmaDestino}
+                      aulaSelecionadaId={aulaDestinoSelecionada?.id}
+                      onSelecionarAula={setAulaDestinoSelecionada}
+                    />
+                  )}
+                </div>
+              )}
+
               <div className={styles["acoes-modal"]}>
                 <button
                   type="button"
@@ -808,7 +820,7 @@ export default function TurmaEspecifica() {
                 <button
                   type="submit"
                   className={styles["botao-salvar"]}
-                  disabled={remarcando || !turmaDestinoSelecionada}
+                  disabled={remarcando || !aulaDestinoSelecionada}
                 >
                   {remarcando ? "Remarcando…" : "Remarcar"}
                 </button>
