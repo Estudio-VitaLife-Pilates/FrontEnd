@@ -7,7 +7,7 @@ import {
   listarPlanosDetalhado,
   removerPlano,
 } from "../../api/planos";
-import { FiUsers, FiTrendingUp, FiBarChart2, FiLayers, FiEdit2, FiTrash2 } from "react-icons/fi";
+import { FiUsers, FiTrendingUp, FiDollarSign, FiLayers, FiEdit2, FiTrash2 } from "react-icons/fi";
 import iconeMais from "../../assets/icone-mais.svg";
 
 function rotuloGrupo(validadeDias) {
@@ -64,8 +64,6 @@ export default function Planos() {
     [planos]
   );
 
-  const maxAlunos = Math.max(1, ...planosComContagem.map((p) => p.totalAlunos));
-
   const totalAlunosGeral = planosComContagem.reduce(
     (soma, p) => soma + p.totalAlunos,
     0
@@ -77,10 +75,10 @@ export default function Planos() {
     null
   );
 
-  const mediaPorPlano =
-    planosComContagem.length > 0
-      ? Math.round(totalAlunosGeral / planosComContagem.length)
-      : 0;
+  const receitaMensalRecorrente = planosComContagem.reduce(
+    (soma, p) => soma + (p.valorMensal ?? 0) * p.totalAlunos,
+    0
+  );
 
   const grupos = useMemo(() => {
     const mapa = new Map();
@@ -211,11 +209,11 @@ export default function Planos() {
 
               <div className={styles["cartao-kpi"]}>
                 <div className={styles["icone-kpi"]}>
-                  <FiBarChart2 size={16} />
+                  <FiDollarSign size={16} />
                 </div>
-                <span className={styles["rotulo-kpi"]}>Média por plano</span>
-                <span className={styles["valor-kpi"]}>{mediaPorPlano}</span>
-                <span className={styles["legenda-kpi"]}>alunos por plano</span>
+                <span className={styles["rotulo-kpi"]}>Receita mensal recorrente</span>
+                <span className={styles["valor-kpi"]}>{formatarMoeda(receitaMensalRecorrente)}</span>
+                <span className={styles["legenda-kpi"]}>somando planos ativos</span>
               </div>
 
               <div className={styles["cartao-kpi"]}>
@@ -241,7 +239,7 @@ export default function Planos() {
                   <div className={styles["linha-cabecalho"]}>
                     <span>Plano</span>
                     <span className={styles["coluna-central"]}>Alunos</span>
-                    <span className={styles["coluna-central"]}>Distribuição</span>
+                    <span className={styles["coluna-central"]}>% do total de alunos</span>
                     <span className={styles["coluna-valor"]}>Valor</span>
                     <span className={styles["coluna-acoes"]}>Ações</span>
                   </div>
@@ -260,13 +258,24 @@ export default function Planos() {
                         {plano.totalAlunos}
                       </span>
 
-                      <div className={styles["barra-distribuicao"]}>
-                        <div
-                          className={styles["barra-preenchida"]}
-                          style={{
-                            width: `${(plano.totalAlunos / maxAlunos) * 100}%`,
-                          }}
-                        />
+                      <div className={styles["celula-distribuicao"]}>
+                        <div className={styles["barra-distribuicao"]}>
+                          <div
+                            className={styles["barra-preenchida"]}
+                            style={{
+                              width: `${
+                                totalAlunosGeral > 0
+                                  ? (plano.totalAlunos / totalAlunosGeral) * 100
+                                  : 0
+                              }%`,
+                            }}
+                          />
+                        </div>
+                        <span className={styles["texto-percentual"]}>
+                          {totalAlunosGeral > 0
+                            ? `${Math.round((plano.totalAlunos / totalAlunosGeral) * 100)}%`
+                            : "—"}
+                        </span>
                       </div>
 
                       <span className={styles["valor-plano"]}>
