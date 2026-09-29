@@ -7,6 +7,7 @@ import {
   buscarAlunoDetalhadoPorId,
   editarAluno,
   inativarAluno,
+  reativarAluno,
 } from "../../api/alunos";
 import {
   adicionarAlunoNaTurma,
@@ -27,6 +28,7 @@ import {
   FiMail,
   FiCreditCard,
   FiUserX,
+  FiUserCheck,
   FiUsers,
   FiEdit2,
   FiX,
@@ -196,6 +198,13 @@ export default function DadosAluno() {
     inativarAluno(aluno.id)
       .then(() => navigate("/alunos"))
       .catch(() => setAcaoErro("Não foi possível inativar o aluno."));
+  }
+
+  function executarReativar() {
+    setAcaoErro(null);
+    reativarAluno(aluno.id)
+      .then(carregarTudo)
+      .catch(() => setAcaoErro("Não foi possível reativar o aluno."));
   }
 
   function abrirModalFicha() {
@@ -678,20 +687,41 @@ export default function DadosAluno() {
             </div>
 
             <div className={styles["cartao-perigo"]}>
-              <div>
-                <p className={styles["titulo-perigo"]}>Inativar aluno</p>
-                <p className={styles["texto-perigo"]}>
-                  O aluno deixa de aparecer como ativo, mas o histórico é
-                  mantido.
-                </p>
-              </div>
-              <button
-                className={styles["botao-inativar-aluno"]}
-                onClick={executarInativar}
-              >
-                <FiUserX size={16} />
-                Inativar
-              </button>
+              {aluno.ativo ? (
+                <>
+                  <div>
+                    <p className={styles["titulo-perigo"]}>Inativar aluno</p>
+                    <p className={styles["texto-perigo"]}>
+                      O aluno deixa de aparecer como ativo, mas o histórico é
+                      mantido.
+                    </p>
+                  </div>
+                  <button
+                    className={styles["botao-inativar-aluno"]}
+                    onClick={executarInativar}
+                  >
+                    <FiUserX size={16} />
+                    Inativar
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <p className={styles["titulo-perigo"]}>Reativar aluno</p>
+                    <p className={styles["texto-perigo"]}>
+                      Volta a aparecer como ativo. Plano e turmas não são
+                      restaurados — matricule de novo se for o caso.
+                    </p>
+                  </div>
+                  <button
+                    className={styles["botao-inativar-aluno"]}
+                    onClick={executarReativar}
+                  >
+                    <FiUserCheck size={16} />
+                    Reativar
+                  </button>
+                </>
+              )}
             </div>
           </>
         )}

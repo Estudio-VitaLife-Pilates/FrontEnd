@@ -28,6 +28,10 @@ export function inativarAluno(id) {
   return api.remover(`/alunos/${id}`);
 }
 
+export function reativarAluno(id) {
+  return api.patch(`/alunos/${id}/reativar`);
+}
+
 export function associarPlano(alunoId, planoId) {
   return api.post(`/alunos/planos/${alunoId}/${planoId}`);
 }

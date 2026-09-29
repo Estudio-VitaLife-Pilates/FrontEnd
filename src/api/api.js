@@ -34,5 +34,6 @@ export const api = {
   get: (caminho) => requisitar(cliente.get(caminho)),
   post: (caminho, corpo) => requisitar(cliente.post(caminho, corpo)),
   put: (caminho, corpo) => requisitar(cliente.put(caminho, corpo)),
+  patch: (caminho, corpo) => requisitar(cliente.patch(caminho, corpo)),
   remover: (caminho) => requisitar(cliente.delete(caminho)),
 };
