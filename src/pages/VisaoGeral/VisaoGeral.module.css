@@ -9,56 +9,268 @@
 }
 
 .conteudo {
-  max-width: 1024px;
+  max-width: 1152px;
   margin: 0 auto;
-  padding: 80px 32px;
-  display: flex;
-  justify-content: center;
-}
-
-.cartao-construcao {
+  padding: 48px 32px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 12px;
-  max-width: 480px;
-  padding: 48px 40px;
-  border-radius: 24px;
-  background: linear-gradient(168deg, #f0e6e0 0%, #e6dff5 100%);
-  box-shadow: 0px 2px 8px 0px rgba(217, 121, 96, 0.1);
+  gap: 24px;
 }
 
-.icone-construcao {
-  width: 64px;
-  height: 64px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.7);
-  color: #d97960;
+.cabecalho-pagina {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 8px;
+  flex-direction: column;
 }
 
-.etiqueta-construcao {
-  color: #7a6a63;
+.etiqueta-geral {
+  color: #999999;
   font-family: "Inter-Regular", sans-serif;
-  font-size: 11.2px;
-  letter-spacing: 2.02px;
+  font-size: 14px;
+  letter-spacing: 2.88px;
+  font-weight: 400;
   text-transform: uppercase;
 }
 
-.titulo-construcao {
+.titulo-pagina {
   color: #2c2c2c;
   font-family: "Poppins-Medium", sans-serif;
   font-size: 24px;
   font-weight: 500;
+  margin-top: 4px;
 }
 
-.texto-construcao {
+.texto-data {
+  color: #999999;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 13.6px;
+  text-transform: capitalize;
+  margin-top: 4px;
+}
+
+.mensagem-info {
+  color: #999999;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 14px;
+}
+
+.mensagem-erro {
+  color: #b3402c;
+  background: #fbe9e5;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 14px;
+}
+
+/* KPIs */
+
+.grade-kpi {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.cartao-kpi,
+.cartao-kpi-destaque {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 21px;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 0.8px solid #e8e8e8;
+  box-shadow: 0px 1px 1.5px 0px rgba(0, 0, 0, 0.03);
+  text-decoration: none;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+a.cartao-kpi:hover,
+a.cartao-kpi-destaque:hover {
+  box-shadow: 0px 4px 12px 0px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+}
+
+.cartao-kpi-destaque {
+  background: linear-gradient(148deg, #f0e6e0 0%, #e6dff5 100%);
+  border-color: transparent;
+  box-shadow: 0px 2px 6px 0px rgba(217, 121, 96, 0.1);
+}
+
+.icone-kpi {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: #f0e6e0;
+  color: #5a4f4d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cartao-kpi-destaque .icone-kpi {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.rotulo-kpi {
+  color: #999999;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 10.88px;
+  letter-spacing: 0.87px;
+  text-transform: uppercase;
+}
+
+.valor-kpi {
+  color: #2c2c2c;
+  font-family: "Poppins-Medium", sans-serif;
+  font-size: 25.6px;
+  overflow-wrap: break-word;
+}
+
+.legenda-kpi {
   color: #5a4f4d;
   font-family: "Inter-Regular", sans-serif;
-  font-size: 14.5px;
-  line-height: 1.6;
+  font-size: 12.48px;
+}
+
+/* Faixas de destaque/alerta */
+
+.faixa-destaque,
+.faixa-alerta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 13.6px;
+}
+
+.faixa-destaque {
+  background: #ece7f5;
+  color: #6a5a8a;
+}
+
+.faixa-destaque strong {
+  font-family: "Inter-Medium", sans-serif;
+  font-weight: 500;
+}
+
+.faixa-alerta {
+  background: #fef3c7;
+  color: #92580a;
+}
+
+/* Agenda do dia */
+
+.secao-agenda {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cabecalho-secao {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.titulo-com-contagem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #2c2c2c;
+}
+
+.titulo-secao {
+  color: #2c2c2c;
+  font-family: "Poppins-Medium", sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.lista-agenda {
+  background: #ffffff;
+  border: 0.8px solid #e8e8e8;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0px 1px 3px 0px rgba(0, 0, 0, 0.02);
+}
+
+.item-agenda {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 16px 24px;
+  border-top: 0.8px solid #e8e8e8;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+
+.item-agenda:first-child {
+  border-top: none;
+}
+
+.item-agenda:hover {
+  background-color: #faf7f5;
+}
+
+.horario-agenda {
+  color: #d97960;
+  font-family: "Poppins-Medium", sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  width: 56px;
+  flex-shrink: 0;
+}
+
+.info-agenda {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.dia-agenda {
+  color: #2c2c2c;
+  font-family: "Inter-Medium", sans-serif;
+  font-size: 14.4px;
+  font-weight: 500;
+}
+
+.professor-agenda {
+  color: #999999;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 12.8px;
+}
+
+.badge-ocupacao-agenda {
+  background: #f0e6e0;
+  color: #5a4f4d;
+  font-family: "Inter-Medium", sans-serif;
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.badge-lotada {
+  background: #fbe9e5;
+  color: #b3402c;
+}
+
+@media (max-width: 900px) {
+  .grade-kpi {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .grade-kpi {
+    grid-template-columns: 1fr;
+  }
+
+  .item-agenda {
+    gap: 12px;
+  }
 }
