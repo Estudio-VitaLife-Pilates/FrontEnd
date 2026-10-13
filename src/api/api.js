@@ -31,7 +31,7 @@ async function requisitar(promessa) {
 }
 
 export const api = {
-  get: (caminho) => requisitar(cliente.get(caminho)),
+  get: (caminho, config) => requisitar(cliente.get(caminho, config)),
   post: (caminho, corpo) => requisitar(cliente.post(caminho, corpo)),
   put: (caminho, corpo) => requisitar(cliente.put(caminho, corpo)),
   remover: (caminho) => requisitar(cliente.delete(caminho)),
