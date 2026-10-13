@@ -84,25 +84,27 @@ export default function Alunos() {
     ])
       .then(([respostaAlunos, dadosTurmas]) => {
         // Aceita resposta Axios ou dados já tratados pelo api.js
-        const dadosPaginados =
-          respostaAlunos?.data ?? respostaAlunos;
 
-        const alunosDaPagina = dadosPaginados?.content ?? [];
-        
+        const dadosPaginados = respostaAlunos?.data ?? respostaAlunos;
+
+        // Aceita tanto um array quanto a resposta paginada do Spring.
+        const alunosDaPagina = Array.isArray(dadosPaginados)
+          ? dadosPaginados
+          : Array.isArray(dadosPaginados?.content)
+            ? dadosPaginados.content
+            : [];
+
         return Promise.all(
           dadosTurmas.map((turma) =>
             listarAlunosDaTurma(turma.id).then((detalhe) => ({
               turma,
-              alunos: detalhe.alunos ?? [],
+              alunos: detalhe?.alunos ?? [],
             }))
           )
         ).then((porTurma) => {
           const mapa = {};
 
-          for (const {
-            turma,
-            alunos: alunosDaTurma,
-          } of porTurma) {
+          for (const { turma, alunos: alunosDaTurma } of porTurma) {
             const rotulo = formatarHorarioCurto(
               turma.diaSemana,
               turma.horaInicio
@@ -120,9 +122,17 @@ export default function Alunos() {
           setTurmasPorAluno(mapa);
           setAlunos(alunosDaPagina);
 
-          // Metadados retornados pelo backend
-          setTotalPaginas(dadosPaginados?.totalPages ?? 0);
-          setTotalRegistros(dadosPaginados?.totalElements ?? 0);
+          setTotalPaginas(
+            Array.isArray(dadosPaginados)
+              ? 1
+              : dadosPaginados?.totalPages ?? 0
+          );
+
+          setTotalRegistros(
+            Array.isArray(dadosPaginados)
+              ? dadosPaginados.length
+              : dadosPaginados?.totalElements ?? 0
+          );
         });
       })
       .catch(() => {
@@ -417,8 +427,8 @@ export default function Alunos() {
                       <div className={styles["coluna-status"]}>
                         <span
                           className={`${styles.badge} ${aluno.ativo
-                              ? styles.badgeAtivo
-                              : styles.badgeInativo
+                            ? styles.badgeAtivo
+                            : styles.badgeInativo
                             }`}
                         >
                           {aluno.ativo ? "Ativo" : "Inativo"}
