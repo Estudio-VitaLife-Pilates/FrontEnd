@@ -22,6 +22,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Validate deployment script
+        run: bash -n scripts/deploy-frontend.sh
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -60,8 +63,22 @@ jobs:
 
       - name: Deploy to both web instances through Systems Manager
         env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ env.IMAGE_TAG }}
         run: |
+          APP_PRIVATE_IP=$(aws ec2 describe-instances \
+            --filters \
+              "Name=tag:Name,Values=InstanciaApp-01" \
+              "Name=instance-state-name,Values=running" \
+            --query "Reservations[0].Instances[0].PrivateIpAddress" \
+            --output text)
+
+          if [ -z "$APP_PRIVATE_IP" ] || [ "$APP_PRIVATE_IP" = "None" ]; then
+            echo "The running app instance private IP was not found." >&2
+            exit 1
+          fi
+
+          DEPLOY_SCRIPT_B64=$(gzip -c scripts/deploy-frontend.sh | base64 -w0)
           mapfile -t INSTANCE_IDS < <(
             aws ec2 describe-instances \
               --filters \
@@ -79,7 +96,7 @@ jobs:
 
           for INSTANCE_ID in "${INSTANCE_IDS[@]}"; do
             echo "Deploying frontend image $IMAGE_TAG to $INSTANCE_ID"
-            SSM_COMMAND="/usr/local/bin/deploy-frontend $IMAGE_TAG"
+            SSM_COMMAND="printf '%s' '$DEPLOY_SCRIPT_B64' | base64 --decode | gzip --decompress > /tmp/deploy-frontend.sh && chmod 700 /tmp/deploy-frontend.sh && /bin/bash /tmp/deploy-frontend.sh '$IMAGE_TAG' '$AWS_REGION' '$ECR_REGISTRY' '$APP_PRIVATE_IP'"
             PARAMETERS=$(jq -n --arg command "$SSM_COMMAND" '{commands: [$command]}')
             COMMAND_ID=$(aws ssm send-command \
               --instance-ids "$INSTANCE_ID" \
