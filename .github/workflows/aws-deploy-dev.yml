@@ -79,11 +79,13 @@ jobs:
 
           for INSTANCE_ID in "${INSTANCE_IDS[@]}"; do
             echo "Deploying frontend image $IMAGE_TAG to $INSTANCE_ID"
+            SSM_COMMAND="/usr/local/bin/deploy-frontend $IMAGE_TAG"
+            PARAMETERS=$(jq -n --arg command "$SSM_COMMAND" '{commands: [$command]}')
             COMMAND_ID=$(aws ssm send-command \
               --instance-ids "$INSTANCE_ID" \
               --document-name AWS-RunShellScript \
               --comment "Deploy frontend image $IMAGE_TAG" \
-              --parameters "commands=/usr/local/bin/deploy-frontend '$IMAGE_TAG'" \
+              --parameters "$PARAMETERS" \
               --query "Command.CommandId" \
               --output text)
 
