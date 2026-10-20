@@ -3,7 +3,7 @@
 Aplicação React/Vite servida por Nginx em container Docker. Para desenvolvimento
 local:
 
-```powershell
+```powershell 
 npm ci
 npm run dev
 ```
