@@ -2,9 +2,17 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./Alunos.module.css";
 import { Navbar } from "../../components/Navbar/Navbar";
-import { cadastrarAluno, listarAlunosDetalhado } from "../../api/alunos";
+import {
+  cadastrarAluno,
+  listarAlunosDetalhadoPaginado,
+} from "../../api/alunos";
 import { listarAlunosDaTurma, listarTurmas } from "../../api/turmas";
-import { FiPlus, FiSearch, FiPhone, FiChevronRight } from "react-icons/fi";
+import {
+  FiPlus,
+  FiSearch,
+  FiPhone,
+  FiChevronRight,
+} from "react-icons/fi";
 
 const NOMES_DIA_CURTO = {
   SEGUNDA: "Seg",
@@ -24,6 +32,7 @@ function formatarHorarioCurto(diaSemana, horaInicio) {
 
 function formatarData(data) {
   if (!data) return "—";
+
   const [ano, mes, dia] = data.split("-");
   return `${dia}/${mes}`;
 }
@@ -39,29 +48,48 @@ const FORM_VAZIO = {
 
 export default function Alunos() {
   const navigate = useNavigate();
+
+  // Dados dos alunos
   const [alunos, setAlunos] = useState([]);
   const [turmasPorAluno, setTurmasPorAluno] = useState({});
+
+  // Estados de carregamento e erro
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(null);
 
+  // Estados dos filtros
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState("");
 
+  // Estados da paginação
+  const [pagina, setPagina] = useState(0);
+  const [totalPaginas, setTotalPaginas] = useState(0);
+  const [totalRegistros, setTotalRegistros] = useState(0);
+
+  const tamanhoPagina = 10;
+
+  // Estados do modal de cadastro
   const [modalAberto, setModalAberto] = useState(false);
   const [form, setForm] = useState(FORM_VAZIO);
   const [enviando, setEnviando] = useState(false);
 
-  useEffect(() => {
-    carregarTudo();
-  }, []);
-
-  function carregarTudo() {
+  // Carrega alunos e turmas da página solicitada
+  function carregarTudo(paginaAtual = pagina) {
     setCarregando(true);
     setErro(null);
 
-    Promise.all([listarAlunosDetalhado(), listarTurmas()])
-      .then(([dadosAlunos, dadosTurmas]) =>
-        Promise.all(
+    Promise.all([
+      listarAlunosDetalhadoPaginado(paginaAtual, tamanhoPagina),
+      listarTurmas(),
+    ])
+      .then(([respostaAlunos, dadosTurmas]) => {
+        // Aceita resposta Axios ou dados já tratados pelo api.js
+        const dadosPaginados =
+          respostaAlunos?.data ?? respostaAlunos;
+
+        const alunosDaPagina = dadosPaginados?.content ?? [];
+        
+        return Promise.all(
           dadosTurmas.map((turma) =>
             listarAlunosDaTurma(turma.id).then((detalhe) => ({
               turma,
@@ -70,40 +98,71 @@ export default function Alunos() {
           )
         ).then((porTurma) => {
           const mapa = {};
-          for (const { turma, alunos: alunosDaTurma } of porTurma) {
-            const rotulo = formatarHorarioCurto(turma.diaSemana, turma.horaInicio);
+
+          for (const {
+            turma,
+            alunos: alunosDaTurma,
+          } of porTurma) {
+            const rotulo = formatarHorarioCurto(
+              turma.diaSemana,
+              turma.horaInicio
+            );
+
             for (const aluno of alunosDaTurma) {
-              if (!mapa[aluno.id]) mapa[aluno.id] = [];
+              if (!mapa[aluno.id]) {
+                mapa[aluno.id] = [];
+              }
+
               mapa[aluno.id].push(rotulo);
             }
           }
+
           setTurmasPorAluno(mapa);
-          setAlunos(dadosAlunos ?? []);
-        })
-      )
-      .catch(() => setErro("Não foi possível carregar os alunos."))
-      .finally(() => setCarregando(false));
+          setAlunos(alunosDaPagina);
+
+          // Metadados retornados pelo backend
+          setTotalPaginas(dadosPaginados?.totalPages ?? 0);
+          setTotalRegistros(dadosPaginados?.totalElements ?? 0);
+        });
+      })
+      .catch(() => {
+        setErro("Não foi possível carregar os alunos.");
+      })
+      .finally(() => {
+        setCarregando(false);
+      });
   }
 
+  // Recarrega os dados sempre que a página mudar
+  useEffect(() => {
+    carregarTudo(pagina);
+  }, [pagina]);
+
+  // Aplica os filtros sobre os alunos da página atual
   const alunosFiltrados = useMemo(() => {
     const buscaMinuscula = busca.toLowerCase();
+
     return alunos.filter((aluno) => {
       const bateBusca =
         !busca ||
-        aluno.nome.toLowerCase().includes(buscaMinuscula) ||
+        (aluno.nome ?? "").toLowerCase().includes(buscaMinuscula) ||
         (aluno.telefone ?? "").includes(busca);
+
       const bateStatus =
         !filtroStatus ||
         (filtroStatus === "ATIVO" && aluno.ativo) ||
         (filtroStatus === "INATIVO" && !aluno.ativo);
+
       return bateBusca && bateStatus;
     });
   }, [alunos, busca, filtroStatus]);
 
-  const totalAlunos = alunos.length;
+  // Indicadores
+  const totalAlunos = totalRegistros;
   const totalAtivos = alunos.filter((a) => a.ativo).length;
-  const totalInativos = totalAlunos - totalAtivos;
+  const totalInativos = alunos.filter((a) => !a.ativo).length;
 
+  // Modal de cadastro
   function abrirModal() {
     setForm(FORM_VAZIO);
     setModalAberto(true);
@@ -115,9 +174,13 @@ export default function Alunos() {
 
   function setValorCampo(campo) {
     return (event) =>
-      setForm((atual) => ({ ...atual, [campo]: event.target.value }));
+      setForm((atual) => ({
+        ...atual,
+        [campo]: event.target.value,
+      }));
   }
 
+  // Cadastro de aluno
   function executarCadastro(event) {
     event.preventDefault();
     setEnviando(true);
@@ -132,10 +195,25 @@ export default function Alunos() {
     })
       .then(() => {
         fecharModal();
-        carregarTudo();
+        carregarTudo(pagina);
       })
-      .catch(() => setErro("Não foi possível cadastrar o aluno."))
-      .finally(() => setEnviando(false));
+      .catch(() => {
+        setErro("Não foi possível cadastrar o aluno.");
+      })
+      .finally(() => {
+        setEnviando(false);
+      });
+  }
+
+  // Navegação da paginação
+  function paginaAnterior() {
+    setPagina((atual) => Math.max(0, atual - 1));
+  }
+
+  function proximaPagina() {
+    setPagina((atual) =>
+      Math.min(totalPaginas - 1, atual + 1)
+    );
   }
 
   return (
@@ -143,48 +221,102 @@ export default function Alunos() {
       <Navbar />
 
       <div className={styles.conteudo}>
+        {/* Cabeçalho */}
         <div className={styles["cabecalho-pagina"]}>
           <div>
-            <span className={styles["etiqueta-gestao"]}>Gestão</span>
-            <h1 className={styles["titulo-pagina"]}>Alunos</h1>
+            <span className={styles["etiqueta-gestao"]}>
+              Gestão
+            </span>
+
+            <h1 className={styles["titulo-pagina"]}>
+              Alunos
+            </h1>
           </div>
-          <button className={styles["botao-cadastrar"]} onClick={abrirModal}>
+
+          <button
+            className={styles["botao-cadastrar"]}
+            onClick={abrirModal}
+          >
             <FiPlus size={16} />
             Cadastrar
           </button>
         </div>
 
-        {erro && <p className={styles["mensagem-erro"]}>{erro}</p>}
+        {/* Mensagem de erro */}
+        {erro && (
+          <p className={styles["mensagem-erro"]}>
+            {erro}
+          </p>
+        )}
 
+        {/* Conteúdo principal */}
         {carregando ? (
-          <p className={styles["mensagem-info"]}>Carregando alunos…</p>
+          <p className={styles["mensagem-info"]}>
+            Carregando alunos…
+          </p>
         ) : (
           <>
+            {/* Indicadores */}
             <div className={styles["grade-kpi"]}>
               <div className={styles["cartao-kpi-destaque"]}>
-                <span className={styles["rotulo-kpi"]}>Total de alunos</span>
-                <span className={styles["valor-kpi"]}>{totalAlunos}</span>
-                <span className={styles["legenda-kpi"]}>cadastrados no sistema</span>
+                <span className={styles["rotulo-kpi"]}>
+                  Total de alunos
+                </span>
+
+                <span className={styles["valor-kpi"]}>
+                  {totalAlunos}
+                </span>
+
+                <span className={styles["legenda-kpi"]}>
+                  cadastrados no sistema
+                </span>
               </div>
+
               <div className={styles["cartao-kpi"]}>
-                <span className={styles["rotulo-kpi"]}>Alunos ativos</span>
-                <span className={styles["valor-kpi"]}>{totalAtivos}</span>
-                <span className={styles["legenda-kpi"]}>ativos no sistema</span>
+                <span className={styles["rotulo-kpi"]}>
+                  Alunos ativos
+                </span>
+
+                <span className={styles["valor-kpi"]}>
+                  {totalAtivos}
+                </span>
+
+                <span className={styles["legenda-kpi"]}>
+                  ativos nesta página
+                </span>
               </div>
+
               <div className={styles["cartao-kpi"]}>
-                <span className={styles["rotulo-kpi"]}>Alunos inativos</span>
-                <span className={styles["valor-kpi"]}>{totalInativos}</span>
-                <span className={styles["legenda-kpi"]}>inativos no sistema</span>
+                <span className={styles["rotulo-kpi"]}>
+                  Alunos inativos
+                </span>
+
+                <span className={styles["valor-kpi"]}>
+                  {totalInativos}
+                </span>
+
+                <span className={styles["legenda-kpi"]}>
+                  inativos nesta página
+                </span>
               </div>
             </div>
 
+            {/* Filtros */}
             <div className={styles["barra-filtros"]}>
               <div className={styles["grupo-campo-filtro"]}>
-                <label className={styles["rotulo-busca"]} htmlFor="busca">
+                <label
+                  className={styles["rotulo-busca"]}
+                  htmlFor="busca"
+                >
                   Busca por nome ou telefone
                 </label>
+
                 <div className={styles["container-busca"]}>
-                  <FiSearch size={16} className={styles["icone-busca"]} />
+                  <FiSearch
+                    size={16}
+                    className={styles["icone-busca"]}
+                  />
+
                   <input
                     id="busca"
                     className={styles["input-busca"]}
@@ -196,14 +328,20 @@ export default function Alunos() {
               </div>
 
               <div className={styles["grupo-campo-filtro-status"]}>
-                <label className={styles["rotulo-busca"]} htmlFor="filtroStatus">
+                <label
+                  className={styles["rotulo-busca"]}
+                  htmlFor="filtroStatus"
+                >
                   Status
                 </label>
+
                 <select
                   id="filtroStatus"
                   className={styles["select-filtro"]}
                   value={filtroStatus}
-                  onChange={(e) => setFiltroStatus(e.target.value)}
+                  onChange={(e) =>
+                    setFiltroStatus(e.target.value)
+                  }
                 >
                   <option value="">Todos</option>
                   <option value="ATIVO">Ativo</option>
@@ -212,34 +350,51 @@ export default function Alunos() {
               </div>
             </div>
 
+            {/* Tabela de alunos */}
             {alunosFiltrados.length === 0 ? (
-              <p className={styles["mensagem-info"]}>Nenhum aluno encontrado.</p>
+              <p className={styles["mensagem-info"]}>
+                Nenhum aluno encontrado.
+              </p>
             ) : (
               <div className={styles["tabela-alunos"]}>
                 <div className={styles["linha-cabecalho"]}>
                   <span>Nome / Telefone</span>
                   <span>Vencimento</span>
                   <span>Turma</span>
-                  <span className={styles["coluna-status"]}>Status</span>
+                  <span className={styles["coluna-status"]}>
+                    Status
+                  </span>
                 </div>
 
                 {alunosFiltrados.map((aluno) => {
-                  const planoAtivo = (aluno.planos ?? []).find((p) => p.ativo);
-                  const turmasDoAluno = turmasPorAluno[aluno.id] ?? [];
+                  const planoAtivo = (aluno.planos ?? []).find(
+                    (p) => p.ativo
+                  );
+
+                  const turmasDoAluno =
+                    turmasPorAluno[aluno.id] ?? [];
 
                   return (
                     <div
                       className={styles["linha-aluno"]}
                       key={aluno.id}
-                      onClick={() => navigate(`/alunos/${aluno.id}`)}
+                      onClick={() =>
+                        navigate(`/alunos/${aluno.id}`)
+                      }
                       style={{ cursor: "pointer" }}
                     >
                       <div className={styles["nome-com-avatar"]}>
                         <div className={styles["avatar-aluno"]}>
-                          {aluno.nome.charAt(0).toUpperCase()}
+                          {(aluno.nome ?? "")
+                            .charAt(0)
+                            .toUpperCase()}
                         </div>
+
                         <div>
-                          <p className={styles["nome-aluno"]}>{aluno.nome}</p>
+                          <p className={styles["nome-aluno"]}>
+                            {aluno.nome}
+                          </p>
+
                           <p className={styles["telefone-aluno"]}>
                             <FiPhone size={12} />
                             {aluno.telefone || "—"}
@@ -248,42 +403,128 @@ export default function Alunos() {
                       </div>
 
                       <span className={styles["vencimento-aluno"]}>
-                        {planoAtivo ? formatarData(planoAtivo.dataFim) : "—"}
+                        {planoAtivo
+                          ? formatarData(planoAtivo.dataFim)
+                          : "—"}
                       </span>
 
                       <span className={styles["turma-aluno"]}>
-                        {turmasDoAluno.length > 0 ? turmasDoAluno.join(" / ") : "—"}
+                        {turmasDoAluno.length > 0
+                          ? turmasDoAluno.join(" / ")
+                          : "—"}
                       </span>
 
                       <div className={styles["coluna-status"]}>
                         <span
-                          className={`${styles.badge} ${
-                            aluno.ativo ? styles.badgeAtivo : styles.badgeInativo
-                          }`}
+                          className={`${styles.badge} ${aluno.ativo
+                              ? styles.badgeAtivo
+                              : styles.badgeInativo
+                            }`}
                         >
                           {aluno.ativo ? "Ativo" : "Inativo"}
                         </span>
-                        <FiChevronRight size={16} className={styles["icone-seta"]} />
+
+                        <FiChevronRight
+                          size={16}
+                          className={styles["icone-seta"]}
+                        />
                       </div>
                     </div>
                   );
                 })}
               </div>
             )}
+
+            {/* Paginação */}
+            {totalRegistros > 0 && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "16px",
+                  marginTop: "24px",
+                  marginBottom: "24px",
+                }}
+              >
+                <button
+                  type="button"
+                  disabled={pagina === 0 || carregando}
+                  onClick={paginaAnterior}
+                  style={{
+                    padding: "10px 18px",
+                    border: "1px solid #d1d5db",
+                    borderRadius: "8px",
+                    backgroundColor: "#fff",
+                    color: "#374151",
+                    cursor:
+                      pagina === 0 || carregando
+                        ? "not-allowed"
+                        : "pointer",
+                    opacity:
+                      pagina === 0 || carregando ? 0.5 : 1,
+                  }}
+                >
+                  Anterior
+                </button>
+
+                <span style={{ fontSize: "14px", color: "#6b7280" }}>
+                  Página {pagina + 1} de {totalPaginas}
+                </span>
+
+                <button
+                  type="button"
+                  disabled={
+                    pagina + 1 >= totalPaginas || carregando
+                  }
+                  onClick={proximaPagina}
+                  style={{
+                    padding: "10px 18px",
+                    border: "1px solid #d1d5db",
+                    borderRadius: "8px",
+                    backgroundColor: "#fff",
+                    color: "#374151",
+                    cursor:
+                      pagina + 1 >= totalPaginas || carregando
+                        ? "not-allowed"
+                        : "pointer",
+                    opacity:
+                      pagina + 1 >= totalPaginas || carregando
+                        ? 0.5
+                        : 1,
+                  }}
+                >
+                  Próxima
+                </button>
+              </div>
+            )}
           </>
         )}
       </div>
 
+      {/* Modal de cadastro */}
       {modalAberto && (
-        <div className={styles["fundo-modal"]} onClick={fecharModal}>
-          <div className={styles["caixa-modal"]} onClick={(e) => e.stopPropagation()}>
-            <h2 className={styles["titulo-modal"]}>Cadastrar aluno</h2>
+        <div
+          className={styles["fundo-modal"]}
+          onClick={fecharModal}
+        >
+          <div
+            className={styles["caixa-modal"]}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className={styles["titulo-modal"]}>
+              Cadastrar aluno
+            </h2>
 
             <form onSubmit={executarCadastro}>
               <div className={styles["grupo-campo"]}>
-                <label className={styles["rotulo-campo"]} htmlFor="nome">
+                <label
+                  className={styles["rotulo-campo"]}
+                  htmlFor="nome"
+                >
                   Nome completo
                 </label>
+
                 <input
                   id="nome"
                   className={styles["input-modal"]}
@@ -294,9 +535,13 @@ export default function Alunos() {
               </div>
 
               <div className={styles["grupo-campo"]}>
-                <label className={styles["rotulo-campo"]} htmlFor="telefone">
+                <label
+                  className={styles["rotulo-campo"]}
+                  htmlFor="telefone"
+                >
                   Telefone
                 </label>
+
                 <input
                   id="telefone"
                   className={styles["input-modal"]}
@@ -307,9 +552,13 @@ export default function Alunos() {
               </div>
 
               <div className={styles["grupo-campo"]}>
-                <label className={styles["rotulo-campo"]} htmlFor="cpf">
+                <label
+                  className={styles["rotulo-campo"]}
+                  htmlFor="cpf"
+                >
                   CPF
                 </label>
+
                 <input
                   id="cpf"
                   className={styles["input-modal"]}
@@ -320,9 +569,13 @@ export default function Alunos() {
               </div>
 
               <div className={styles["grupo-campo"]}>
-                <label className={styles["rotulo-campo"]} htmlFor="email">
+                <label
+                  className={styles["rotulo-campo"]}
+                  htmlFor="email"
+                >
                   E-mail
                 </label>
+
                 <input
                   id="email"
                   type="email"
@@ -333,9 +586,13 @@ export default function Alunos() {
               </div>
 
               <div className={styles["grupo-campo"]}>
-                <label className={styles["rotulo-campo"]} htmlFor="dataNascimento">
+                <label
+                  className={styles["rotulo-campo"]}
+                  htmlFor="dataNascimento"
+                >
                   Data de nascimento
                 </label>
+
                 <input
                   id="dataNascimento"
                   type="date"
@@ -346,9 +603,13 @@ export default function Alunos() {
               </div>
 
               <div className={styles["grupo-campo"]}>
-                <label className={styles["rotulo-campo"]} htmlFor="fichaAnamnese">
+                <label
+                  className={styles["rotulo-campo"]}
+                  htmlFor="fichaAnamnese"
+                >
                   Ficha de anamnese
                 </label>
+
                 <textarea
                   id="fichaAnamnese"
                   className={styles["textarea-modal"]}
@@ -366,6 +627,7 @@ export default function Alunos() {
                 >
                   Cancelar
                 </button>
+
                 <button
                   type="submit"
                   className={styles["botao-salvar"]}
