@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import styles from "./Planos.module.css";
 import { Navbar } from "../../components/Navbar/Navbar";
+import { useConfirmacao } from "../../hooks/useConfirmacao";
 import {
   cadastrarPlano,
   editarPlano,
@@ -41,6 +42,7 @@ export default function Planos() {
   const [planoEmEdicao, setPlanoEmEdicao] = useState(null);
   const [form, setForm] = useState(FORM_VAZIO);
   const [enviando, setEnviando] = useState(false);
+  const [confirmar, dialogoConfirmacao] = useConfirmacao();
 
   useEffect(() => {
     carregarPlanos();
@@ -147,13 +149,14 @@ export default function Planos() {
       .finally(() => setEnviando(false));
   }
 
-  function executarRemocao(plano) {
-    if (
-      !window.confirm(
-        `Excluir o plano "${plano.nome}"? Essa ação não pode ser desfeita.`
-      )
-    )
-      return;
+  async function executarRemocao(plano) {
+    const confirmado = await confirmar({
+      titulo: "Excluir plano",
+      mensagem: `Excluir o plano "${plano.nome}"? Essa ação não pode ser desfeita.`,
+      textoConfirmar: "Excluir",
+      perigo: true,
+    });
+    if (!confirmado) return;
 
     removerPlano(plano.id)
       .then(carregarPlanos)
@@ -348,18 +351,22 @@ export default function Planos() {
 
               <div className={styles["grupo-campo"]}>
                 <label className={styles["rotulo-campo"]} htmlFor="validadeDias">
-                  Validade (dias)
+                  Validade
                 </label>
-                <input
+                <select
                   id="validadeDias"
-                  type="number"
-                  min="1"
                   className={styles["input-modal"]}
-                  placeholder="Ex: 30"
                   value={form.validadeDias}
                   onChange={setValorCampo("validadeDias")}
                   required
-                />
+                >
+                  <option value="" disabled>
+                    Selecione a validade
+                  </option>
+                  <option value="30">Mensal (30 dias)</option>
+                  <option value="90">Trimestral (90 dias)</option>
+                  <option value="365">Anual (365 dias)</option>
+                </select>
               </div>
 
               <div className={styles["grupo-campo"]}>
@@ -395,6 +402,8 @@ export default function Planos() {
           </div>
         </div>
       )}
+
+      {dialogoConfirmacao}
     </div>
   );
 }
