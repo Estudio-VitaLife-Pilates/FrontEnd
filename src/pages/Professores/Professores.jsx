@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./Professores.module.css";
 import { Navbar } from "../../components/Navbar/Navbar";
+import { useConfirmacao } from "../../hooks/useConfirmacao";
 import {
   cadastrarProfessor,
   listarProfessores,
@@ -24,6 +25,7 @@ export default function Professores() {
   const [telefone, setTelefone] = useState("");
   const [email, setEmail] = useState("");
   const [enviando, setEnviando] = useState(false);
+  const [confirmar, dialogoConfirmacao] = useConfirmacao();
 
   useEffect(() => {
     carregarProfessores();
@@ -69,8 +71,15 @@ export default function Professores() {
       .finally(() => setEnviando(false));
   }
 
-  function executarRemocao(id) {
-    if (!window.confirm("Remover este professor?")) return;
+  async function executarRemocao(id) {
+    const confirmado = await confirmar({
+      titulo: "Remover professor",
+      mensagem: "Remover este professor?",
+      textoConfirmar: "Remover",
+      perigo: true,
+    });
+    if (!confirmado) return;
+
     removerProfessor(id)
       .then(carregarProfessores)
       .catch(() => setErro("Não foi possível remover o professor."));
@@ -242,6 +251,8 @@ export default function Professores() {
           </div>
         </div>
       )}
+
+      {dialogoConfirmacao}
     </div>
   );
 }

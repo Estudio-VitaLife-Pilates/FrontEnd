@@ -26,6 +26,16 @@
   width: 100%;
 }
 
+.mensagem-erro {
+  color: #b3402c;
+  background: #fbe9e5;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
 .lado-formulario {
   width: 50%;
   min-height: 100vh;

@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import styles from "./TurmaEspecifica.module.css";
 import { Navbar } from "../../components/Navbar/Navbar";
 import { CalendarioMensal } from "../../components/CalendarioMensal/CalendarioMensal";
+import { useConfirmacao } from "../../hooks/useConfirmacao";
 import {
   buscarTurmaPorId,
   desativarTurma,
@@ -31,6 +32,7 @@ import {
   FiUserPlus,
   FiX,
   FiPower,
+  FiChevronDown,
   FiRepeat,
 } from "react-icons/fi";
 
@@ -124,6 +126,7 @@ export default function TurmaEspecifica() {
   const [alunoSelecionado, setAlunoSelecionado] = useState("");
   const [adicionandoAluno, setAdicionandoAluno] = useState(false);
   const [erroAdicionarAluno, setErroAdicionarAluno] = useState(null);
+  const [confirmar, dialogoConfirmacao] = useConfirmacao();
 
   const [ocorrenciaAberta, setOcorrenciaAberta] = useState(null);
   const [alunosPorAula, setAlunosPorAula] = useState({});
@@ -183,9 +186,14 @@ export default function TurmaEspecifica() {
     ).then((pares) => setOcupacaoPorAula(Object.fromEntries(pares)));
   }
 
-  function executarDesativar() {
-    if (!window.confirm("Desativar esta turma? Ela deixará de aparecer como ativa."))
-      return;
+  async function executarDesativar() {
+    const confirmado = await confirmar({
+      titulo: "Desativar turma",
+      mensagem: "Desativar esta turma? Ela deixará de aparecer como ativa.",
+      textoConfirmar: "Desativar",
+      perigo: true,
+    });
+    if (!confirmado) return;
 
     desativarTurma(id)
       .then(() => navigate("/turmas"))
@@ -242,13 +250,14 @@ export default function TurmaEspecifica() {
       .finally(() => setAdicionandoAluno(false));
   }
 
-  function executarRemoverAlunoDaTurma(alunoId, nome) {
-    if (
-      !window.confirm(
-        `Remover ${nome} desta turma? As próximas aulas dele nessa turma serão canceladas.`
-      )
-    )
-      return;
+  async function executarRemoverAlunoDaTurma(alunoId, nome) {
+    const confirmado = await confirmar({
+      titulo: "Remover aluno da turma",
+      mensagem: `Remover ${nome} desta turma? As próximas aulas dele nessa turma serão canceladas.`,
+      textoConfirmar: "Remover",
+      perigo: true,
+    });
+    if (!confirmado) return;
 
     removerAlunoDaTurma(id, alunoId)
       .then(() => {
@@ -258,8 +267,14 @@ export default function TurmaEspecifica() {
       .catch(() => setErro("Não foi possível remover o aluno da turma."));
   }
 
-  function executarRemoverAlunoDaAula(aulaAlunoId, nome, aulaId) {
-    if (!window.confirm(`Remover ${nome} desta aula?`)) return;
+  async function executarRemoverAlunoDaAula(aulaAlunoId, nome, aulaId) {
+    const confirmado = await confirmar({
+      titulo: "Remover aluno da aula",
+      mensagem: `Remover ${nome} desta aula?`,
+      textoConfirmar: "Remover",
+      perigo: true,
+    });
+    if (!confirmado) return;
 
     removerAlunoDaAula(aulaAlunoId)
       .then(() => {
@@ -288,8 +303,14 @@ export default function TurmaEspecifica() {
     }
   }
 
-  function executarCancelarAulaAluno(aa, aulaId) {
-    if (!window.confirm(`Cancelar a aula de ${aa.alunoNome} nesta data?`)) return;
+  async function executarCancelarAulaAluno(aa, aulaId) {
+    const confirmado = await confirmar({
+      titulo: "Cancelar aula",
+      mensagem: `Cancelar a aula de ${aa.alunoNome} nesta data?`,
+      textoConfirmar: "Cancelar aula",
+      perigo: true,
+    });
+    if (!confirmado) return;
 
     setErro(null);
     cancelarAulaDoAluno(aa.id)
@@ -592,114 +613,124 @@ export default function TurmaEspecifica() {
                 </div>
               </div>
 
-              <CalendarioMensal
-                aulas={proximasOcorrencias}
-                aulaSelecionadaId={ocorrenciaAberta}
-                onSelecionarAula={(aula) => alternarOcorrencia(aula.id)}
-              />
+              {proximasOcorrencias.length === 0 ? (
+                <p className={styles["mensagem-info"]}>
+                  Nenhuma próxima aula gerada ainda para esta turma.
+                </p>
+              ) : (
+                <div className={styles["lista-ocorrencias"]}>
+                  {proximasOcorrencias.map((aula) => {
+                    const aberta = ocorrenciaAberta === aula.id;
+                    const alunosDaAula = (alunosPorAula[aula.id] ?? []).filter(
+                      (aa) => aa.status !== "CANCELADA"
+                    );
+                    const alunosCarregados = alunosPorAula[aula.id] !== undefined;
+                    const carregandoEssa = carregandoAlunosDaAula === aula.id;
+                    const ocupacao = ocupacaoPorAula[aula.id];
 
-              {ocorrenciaAberta &&
-                (() => {
-                  const aulaSelecionada = proximasOcorrencias.find(
-                    (aula) => aula.id === ocorrenciaAberta
-                  );
-                  const alunosDaAula = (alunosPorAula[ocorrenciaAberta] ?? []).filter(
-                    (aa) => aa.status !== "CANCELADA"
-                  );
-                  const alunosCarregados = alunosPorAula[ocorrenciaAberta] !== undefined;
-                  const carregandoEssa = carregandoAlunosDaAula === ocorrenciaAberta;
-                  const ocupacao = ocupacaoPorAula[ocorrenciaAberta];
-
-                  return (
-                    <div className={styles["cartao-ocorrencia"]}>
-                      <div className={styles["item-ocorrencia"]}>
-                        <span className={styles["data-com-icone"]}>
-                          <FiClock size={14} />
-                          <span className={styles["data-ocorrencia"]}>
-                            {aulaSelecionada
-                              ? formatarDataCompleta(aulaSelecionada.dataAula)
-                              : "—"}
+                    return (
+                      <div className={styles["cartao-ocorrencia"]} key={aula.id}>
+                        <button
+                          type="button"
+                          className={styles["item-ocorrencia"]}
+                          onClick={() => alternarOcorrencia(aula.id)}
+                          aria-expanded={aberta}
+                        >
+                          <span className={styles["data-com-icone"]}>
+                            <FiClock size={14} />
+                            <span className={styles["data-ocorrencia"]}>
+                              {formatarDataCompleta(aula.dataAula)}
+                            </span>
                           </span>
-                        </span>
-                        {ocupacao !== undefined && ocupacao !== null && turma && (
-                          <span className={styles["badge-ocupacao"]}>
-                            {turma.capacidadeMax - ocupacao}/{turma.capacidadeMax}
+                          <span className={styles["ocupacao-ocorrencia"]}>
+                            {ocupacao !== undefined && ocupacao !== null && turma && (
+                              <span className={styles["badge-ocupacao"]}>
+                                {turma.capacidadeMax - ocupacao}/{turma.capacidadeMax}
+                              </span>
+                            )}
+                            <FiChevronDown
+                              size={16}
+                              className={`${styles["icone-expandir"]} ${
+                                aberta ? styles["icone-expandir-aberto"] : ""
+                              }`}
+                            />
                           </span>
-                        )}
-                      </div>
+                        </button>
 
-                      <div className={styles["conteudo-ocorrencia"]}>
-                        {carregandoEssa ? (
-                          <p className={styles["mensagem-info"]}>Carregando alunos…</p>
-                        ) : !alunosCarregados || alunosDaAula.length === 0 ? (
-                          <p className={styles["mensagem-info"]}>
-                            Nenhum aluno confirmado nessa aula ainda.
-                          </p>
-                        ) : (
-                          <div className={styles["tabela-alunos"]}>
-                            <div className={styles["linha-cabecalho-alunos"]}>
-                              <span>Nome</span>
-                              <span>Status</span>
-                              <span>Telefone</span>
-                              <span className={styles["coluna-acoes"]}>Ações</span>
-                            </div>
-
-                            {alunosDaAula.map((aa) => (
-                              <div className={styles["linha-aluno"]} key={aa.id}>
-                                <Link
-                                  to={`/alunos/${aa.alunoId}`}
-                                  className={styles["nome-com-avatar"]}
-                                >
-                                  <div className={styles["avatar-aluno"]}>
-                                    {aa.alunoNome
-                                      .split(" ")
-                                      .slice(0, 2)
-                                      .map((p) => p.charAt(0).toUpperCase())
-                                      .join("")}
-                                  </div>
-                                  <span>{aa.alunoNome}</span>
-                                </Link>
-                                <span>
-                                  <span
-                                    className={`${styles.badgeStatus} ${
-                                      styles[statusDaAula(aa).estilo]
-                                    }`}
-                                  >
-                                    {statusDaAula(aa).rotulo}
-                                  </span>
-                                </span>
-                                <span className={styles["telefone-aluno"]}>
-                                  <FiPhone size={14} />
-                                  {aa.alunoTelefone}
-                                </span>
-                                <div className={styles["coluna-acoes"]}>
-                                  <button
-                                    className={styles["botao-remarcar"]}
-                                    onClick={() => abrirModalRemarcar(aa, ocorrenciaAberta)}
-                                    title="Remarcar (reposição)"
-                                    aria-label={`Remarcar ${aa.alunoNome}`}
-                                  >
-                                    <FiRepeat size={14} />
-                                  </button>
-                                  <button
-                                    className={styles["botao-cancelar-aula"]}
-                                    onClick={() =>
-                                      executarCancelarAulaAluno(aa, ocorrenciaAberta)
-                                    }
-                                    title="Cancelar"
-                                    aria-label={`Cancelar aula de ${aa.alunoNome}`}
-                                  >
-                                    <FiX size={14} />
-                                  </button>
+                        {aberta && (
+                          <div className={styles["conteudo-ocorrencia"]}>
+                            {carregandoEssa ? (
+                              <p className={styles["mensagem-info"]}>Carregando alunos…</p>
+                            ) : !alunosCarregados || alunosDaAula.length === 0 ? (
+                              <p className={styles["mensagem-info"]}>
+                                Nenhum aluno confirmado nessa aula ainda.
+                              </p>
+                            ) : (
+                              <div className={styles["tabela-alunos"]}>
+                                <div className={styles["linha-cabecalho-alunos"]}>
+                                  <span>Nome</span>
+                                  <span>Status</span>
+                                  <span>Telefone</span>
+                                  <span className={styles["coluna-acoes"]}>Ações</span>
                                 </div>
+
+                                {alunosDaAula.map((aa) => (
+                                  <div className={styles["linha-aluno"]} key={aa.id}>
+                                    <Link
+                                      to={`/alunos/${aa.alunoId}`}
+                                      className={styles["nome-com-avatar"]}
+                                    >
+                                      <div className={styles["avatar-aluno"]}>
+                                        {aa.alunoNome
+                                          .split(" ")
+                                          .slice(0, 2)
+                                          .map((p) => p.charAt(0).toUpperCase())
+                                          .join("")}
+                                      </div>
+                                      <span>{aa.alunoNome}</span>
+                                    </Link>
+                                    <span>
+                                      <span
+                                        className={`${styles.badgeStatus} ${
+                                          styles[statusDaAula(aa).estilo]
+                                        }`}
+                                      >
+                                        {statusDaAula(aa).rotulo}
+                                      </span>
+                                    </span>
+                                    <span className={styles["telefone-aluno"]}>
+                                      <FiPhone size={14} />
+                                      {aa.alunoTelefone}
+                                    </span>
+                                    <div className={styles["coluna-acoes"]}>
+                                      <button
+                                        className={styles["botao-remarcar"]}
+                                        onClick={() => abrirModalRemarcar(aa, aula.id)}
+                                        title="Remarcar (reposição)"
+                                        aria-label={`Remarcar ${aa.alunoNome}`}
+                                      >
+                                        <FiRepeat size={14} />
+                                      </button>
+                                      <button
+                                        className={styles["botao-cancelar-aula"]}
+                                        onClick={() => executarCancelarAulaAluno(aa, aula.id)}
+                                        title="Cancelar"
+                                        aria-label={`Cancelar aula de ${aa.alunoNome}`}
+                                      >
+                                        <FiX size={14} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                ))}
                               </div>
-                            ))}
+                            )}
                           </div>
                         )}
                       </div>
-                    </div>
-                  );
-                })()}
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </>
         )}
@@ -882,6 +913,8 @@ export default function TurmaEspecifica() {
           </div>
         </div>
       )}
+
+      {dialogoConfirmacao}
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import styles from "./DadosProfessor.module.css";
 import { Navbar } from "../../components/Navbar/Navbar";
+import { useConfirmacao } from "../../hooks/useConfirmacao";
 import { buscarProfessorPorId, removerProfessor } from "../../api/professores";
 import {
   buscarVagasTurma,
@@ -49,6 +50,7 @@ export default function DadosProfessor() {
   const [turmasDisponiveis, setTurmasDisponiveis] = useState([]);
   const [turmaSelecionada, setTurmaSelecionada] = useState("");
   const [associando, setAssociando] = useState(false);
+  const [confirmar, dialogoConfirmacao] = useConfirmacao();
 
   useEffect(() => {
     carregarTudo();
@@ -75,13 +77,14 @@ export default function DadosProfessor() {
       .finally(() => setCarregando(false));
   }
 
-  function executarRemocao() {
-    if (
-      !window.confirm(
-        `Remover ${professor.nome} da equipe? Essa ação não pode ser desfeita.`
-      )
-    )
-      return;
+  async function executarRemocao() {
+    const confirmado = await confirmar({
+      titulo: "Remover professor",
+      mensagem: `Remover ${professor.nome} da equipe? Essa ação não pode ser desfeita.`,
+      textoConfirmar: "Remover",
+      perigo: true,
+    });
+    if (!confirmado) return;
 
     removerProfessor(professor.id)
       .then(() => navigate("/professores"))
@@ -329,6 +332,8 @@ export default function DadosProfessor() {
           </div>
         </div>
       )}
+
+      {dialogoConfirmacao}
     </div>
   );
 }

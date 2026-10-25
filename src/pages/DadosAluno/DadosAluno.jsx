@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import styles from "./DadosAluno.module.css";
 import { Navbar } from "../../components/Navbar/Navbar";
 import { CalendarioMensal } from "../../components/CalendarioMensal/CalendarioMensal";
+import { useConfirmacao } from "../../hooks/useConfirmacao";
 import {
   associarPlano,
   buscarAlunoDetalhadoPorId,
@@ -129,6 +130,7 @@ export default function DadosAluno() {
   const [erroDados, setErroDados] = useState(null);
   const [salvandoFicha, setSalvandoFicha] = useState(false);
   const [erroFicha, setErroFicha] = useState(null);
+  const [confirmar, dialogoConfirmacao] = useConfirmacao();
 
   const [modalRemarcarAberto, setModalRemarcarAberto] = useState(false);
   const [aulaParaRemarcar, setAulaParaRemarcar] = useState(null);
@@ -191,13 +193,14 @@ export default function DadosAluno() {
       .finally(() => setCarregando(false));
   }
 
-  function executarInativar() {
-    if (
-      !window.confirm(
-        `Inativar ${aluno.nome}? O aluno deixará de aparecer como ativo no sistema.`
-      )
-    )
-      return;
+  async function executarInativar() {
+    const confirmado = await confirmar({
+      titulo: "Inativar aluno",
+      mensagem: `Inativar ${aluno.nome}? O aluno deixará de aparecer como ativo no sistema.`,
+      textoConfirmar: "Inativar",
+      perigo: true,
+    });
+    if (!confirmado) return;
 
     inativarAluno(aluno.id)
       .then(() => navigate("/alunos"))
@@ -282,8 +285,14 @@ export default function DadosAluno() {
       .finally(() => setSalvandoDados(false));
   }
 
-  function executarCancelar(aula) {
-    if (!window.confirm("Cancelar esta aula do aluno?")) return;
+  async function executarCancelar(aula) {
+    const confirmado = await confirmar({
+      titulo: "Cancelar aula",
+      mensagem: "Cancelar esta aula do aluno?",
+      textoConfirmar: "Cancelar aula",
+      perigo: true,
+    });
+    if (!confirmado) return;
 
     setAcaoErro(null);
     cancelarAulaDoAluno(aula.id)
@@ -291,14 +300,15 @@ export default function DadosAluno() {
       .catch(() => setAcaoErro("Não foi possível cancelar a aula."));
   }
 
-  function executarCancelarTurma(turma) {
+  async function executarCancelarTurma(turma) {
     const rotulo = formatarHorarioCurto(turma.diaSemana, turma.horaInicio);
-    if (
-      !window.confirm(
-        `Cancelar a matrícula do aluno na turma de ${rotulo}? As aulas futuras dessa turma serão canceladas.`
-      )
-    )
-      return;
+    const confirmado = await confirmar({
+      titulo: "Cancelar matrícula",
+      mensagem: `Cancelar a matrícula do aluno na turma de ${rotulo}? As aulas futuras dessa turma serão canceladas.`,
+      textoConfirmar: "Cancelar matrícula",
+      perigo: true,
+    });
+    if (!confirmado) return;
 
     setAcaoErro(null);
     setCancelandoTurmaId(turma.id);
@@ -346,8 +356,16 @@ export default function DadosAluno() {
 
   function abrirModalPlano() {
     setErroPlano(null);
+    const idsDosPlanosAtivos = new Set(
+      (aluno?.planos ?? []).filter((p) => p.ativo).map((p) => p.idPlano)
+    );
+
     listarPlanos()
-      .then(setPlanosDisponiveis)
+      .then((planos) =>
+        setPlanosDisponiveis(
+          (planos ?? []).filter((p) => !idsDosPlanosAtivos.has(p.id))
+        )
+      )
       .catch(() => setErroPlano("Não foi possível carregar os planos disponíveis."));
     setPlanoSelecionado("");
     setModalPlanoAberto(true);
@@ -1071,6 +1089,8 @@ export default function DadosAluno() {
           </div>
         </div>
       )}
+
+      {dialogoConfirmacao}
     </div>
   );
 }

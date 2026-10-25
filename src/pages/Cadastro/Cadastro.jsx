@@ -15,6 +15,8 @@ export default function Cadastro() {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
+  const [erro, setErro] = useState(null);
+  const [enviando, setEnviando] = useState(false);
 
   const [exibirSenha, setExibirSenha] = useState(false);
   const [exibirConfirmarSenha, setExibirConfirmarSenha] = useState(false);
@@ -43,19 +45,21 @@ export default function Cadastro() {
     event.preventDefault();
 
     if (senha !== confirmarSenha) {
-      alert("As senhas não coincidem!");
+      setErro("As senhas não coincidem!");
       return;
     }
 
+    setErro(null);
+    setEnviando(true);
+
     try {
       await cadastro({ nome, email, senha });
-      alert("Cadastro realizado com sucesso!");
       navigate('/');
-      
-    } catch (erro) {
-      alert(erro.message);
+    } catch (erroRequisicao) {
+      setErro(erroRequisicao.message);
+    } finally {
+      setEnviando(false);
     }
-
   };
 
   return (
@@ -78,6 +82,8 @@ export default function Cadastro() {
 
 
               <form className={styles["formulario-cadastro"]} onSubmit={executarCadastro}>
+
+                {erro && <p className={styles["mensagem-erro"]}>{erro}</p>}
 
                 <div className={styles["grupo-campo"]}>
                   <label className={styles["rotulo-campo"]} htmlFor="nome">Nome completo</label>
@@ -161,8 +167,10 @@ export default function Cadastro() {
                 </div>
 
 
-                <button type="submit" className={styles["botao-enviar"]}>
-                  <span className={styles["texto-botao-enviar"]}>Criar conta</span>
+                <button type="submit" className={styles["botao-enviar"]} disabled={enviando}>
+                  <span className={styles["texto-botao-enviar"]}>
+                    {enviando ? "Criando conta…" : "Criar conta"}
+                  </span>
                 </button>
               </form>
 
