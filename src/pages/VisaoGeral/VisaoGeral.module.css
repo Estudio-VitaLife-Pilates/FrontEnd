@@ -79,12 +79,6 @@
   box-shadow: 0px 2px 6px 0px rgba(217, 121, 96, 0.1);
 }
 
-.kpi-topo {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
 .kpi-icone {
   width: 36px;
   height: 36px;
@@ -99,34 +93,6 @@
 
 .cartao-kpi .kpi-icone {
   background: #f0e6e0;
-}
-
-.kpi-badge-verde,
-.kpi-badge-vermelho,
-.kpi-badge-neutro {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-family: "Inter-Regular", sans-serif;
-  font-size: 11.52px;
-  white-space: nowrap;
-}
-
-.kpi-badge-verde {
-  background: #e6f4ed;
-  color: #2a7a4f;
-}
-
-.kpi-badge-vermelho {
-  background: #fff0ee;
-  color: #c85a54;
-}
-
-.kpi-badge-neutro {
-  background: #f0e6e0;
-  color: #999999;
 }
 
 .rotulo-kpi {
@@ -465,13 +431,14 @@
 
 .grade-listas {
   display: grid;
-  grid-template-columns: 1fr 380px;
+  grid-template-columns: 1fr 1fr;
   gap: 16px;
-  align-items: start;
 }
 
 .cartao-lista,
 .cartao-agenda {
+  display: flex;
+  flex-direction: column;
   background: #ffffff;
   border: 0.8px solid #e8e8e8;
   border-radius: 16px;
@@ -604,6 +571,7 @@
 }
 
 .info-agenda {
+  flex: 1;
   min-width: 0;
 }
 

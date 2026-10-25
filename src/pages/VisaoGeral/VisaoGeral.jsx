@@ -18,7 +18,6 @@ import {
   FiCalendar,
   FiCheckCircle,
   FiClock,
-  FiMinus,
   FiPieChart,
   FiRepeat,
   FiTrendingDown,
@@ -234,13 +233,8 @@ export default function VisaoGeral() {
             {/* KPIs */}
             <div className={styles["grade-kpi"]}>
               <div className={styles["cartao-kpi-destaque"]}>
-                <div className={styles["kpi-topo"]}>
-                  <div className={styles["kpi-icone"]}>
-                    <FiUsers size={16} />
-                  </div>
-                  <span className={styles["kpi-badge-verde"]}>
-                    +{kpis.novosAlunosMes} este mês
-                  </span>
+                <div className={styles["kpi-icone"]}>
+                  <FiUsers size={16} />
                 </div>
                 <span className={styles["rotulo-kpi"]}>Total de alunos</span>
                 <span className={styles["valor-kpi"]}>{kpis.totalAlunos}</span>
@@ -248,25 +242,8 @@ export default function VisaoGeral() {
               </div>
 
               <div className={styles["cartao-kpi"]}>
-                <div className={styles["kpi-topo"]}>
-                  <div className={styles["kpi-icone"]}>
-                    <FiPieChart size={16} />
-                  </div>
-                  {kpis.variacaoOcupacaoMes > 0 && (
-                    <span className={styles["kpi-badge-verde"]}>
-                      +{formatarPercentual(kpis.variacaoOcupacaoMes)} este mês
-                    </span>
-                  )}
-                  {kpis.variacaoOcupacaoMes < 0 && (
-                    <span className={styles["kpi-badge-vermelho"]}>
-                      {formatarPercentual(kpis.variacaoOcupacaoMes)} este mês
-                    </span>
-                  )}
-                  {kpis.variacaoOcupacaoMes === 0 && (
-                    <span className={styles["kpi-badge-neutro"]}>
-                      <FiMinus size={10} /> estável
-                    </span>
-                  )}
+                <div className={styles["kpi-icone"]}>
+                  <FiPieChart size={16} />
                 </div>
                 <span className={styles["rotulo-kpi"]}>Taxa de ocupação</span>
                 <span className={styles["valor-kpi"]}>{formatarPercentual(kpis.taxaOcupacao)}</span>
@@ -274,17 +251,8 @@ export default function VisaoGeral() {
               </div>
 
               <div className={styles["cartao-kpi"]}>
-                <div className={styles["kpi-topo"]}>
-                  <div className={styles["kpi-icone"]}>
-                    <FiCalendar size={16} />
-                  </div>
-                  {kpis.aulasCanceladasSemana > 0 ? (
-                    <span className={styles["kpi-badge-vermelho"]}>
-                      –{kpis.aulasCanceladasSemana} canceladas
-                    </span>
-                  ) : (
-                    <span className={styles["kpi-badge-neutro"]}>sem cancelamentos</span>
-                  )}
+                <div className={styles["kpi-icone"]}>
+                  <FiCalendar size={16} />
                 </div>
                 <span className={styles["rotulo-kpi"]}>Aulas esta semana</span>
                 <span className={styles["valor-kpi"]}>{kpis.aulasSemana}</span>
@@ -292,13 +260,8 @@ export default function VisaoGeral() {
               </div>
 
               <div className={styles["cartao-kpi"]}>
-                <div className={styles["kpi-topo"]}>
-                  <div className={styles["kpi-icone"]}>
-                    <FiAward size={16} />
-                  </div>
-                  <span className={styles["kpi-badge-neutro"]}>
-                    <FiMinus size={10} /> estável
-                  </span>
+                <div className={styles["kpi-icone"]}>
+                  <FiAward size={16} />
                 </div>
                 <span className={styles["rotulo-kpi"]}>Taxa de retenção</span>
                 <span className={styles["valor-kpi"]}>{formatarPercentual(kpis.taxaRetencao)}</span>
