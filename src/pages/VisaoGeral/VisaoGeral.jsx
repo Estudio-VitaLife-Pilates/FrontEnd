@@ -238,7 +238,7 @@ export default function VisaoGeral() {
                 </div>
                 <span className={styles["rotulo-kpi"]}>Total de alunos</span>
                 <span className={styles["valor-kpi"]}>{kpis.totalAlunos}</span>
-                <span className={styles["legenda-kpi"]}>em planos ativos</span>
+                <span className={styles["legenda-kpi"]}>ativos no sistema</span>
               </div>
 
               <div className={styles["cartao-kpi"]}>

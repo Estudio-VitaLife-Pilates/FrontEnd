@@ -16,6 +16,10 @@ export function cancelarAulaDoAluno(aulaAlunoId) {
   return api.put(`/aulas/alunos/${aulaAlunoId}/cancelar`);
 }
 
+export function marcarFaltaDoAluno(aulaAlunoId) {
+  return api.put(`/aulas/alunos/${aulaAlunoId}/ausente`);
+}
+
 export function registrarReposicao(aulaDestinoId, alunoId, aulaOrigemId) {
   return api.post(`/aulas/${aulaDestinoId}/reposicao`, { alunoId, aulaOrigemId });
 }

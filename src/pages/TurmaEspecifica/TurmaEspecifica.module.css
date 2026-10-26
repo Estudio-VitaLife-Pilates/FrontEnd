@@ -451,7 +451,8 @@
 }
 
 .botao-remarcar,
-.botao-cancelar-aula {
+.botao-cancelar-aula,
+.botao-marcar-falta {
   width: 32px;
   height: 32px;
   border-radius: 999px;
@@ -473,8 +474,13 @@
   color: #c85a54;
 }
 
+.botao-marcar-falta {
+  color: #b8860b;
+}
+
 .botao-remarcar:hover,
-.botao-cancelar-aula:hover {
+.botao-cancelar-aula:hover,
+.botao-marcar-falta:hover {
   opacity: 0.8;
 }
 

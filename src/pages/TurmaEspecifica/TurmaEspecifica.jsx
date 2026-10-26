@@ -19,6 +19,7 @@ import {
   listarAlunosDaAula,
   removerAlunoDaAula,
   cancelarAulaDoAluno,
+  marcarFaltaDoAluno,
   registrarReposicao,
 } from "../../api/aulas";
 import { listarProfessores } from "../../api/professores";
@@ -34,6 +35,7 @@ import {
   FiPower,
   FiChevronDown,
   FiRepeat,
+  FiUserX,
 } from "react-icons/fi";
 
 const NOMES_DIA_SEMANA = {
@@ -95,6 +97,12 @@ function proximaData(diaSemana) {
   data.setDate(hoje.getDate() + diasAte);
 
   return data.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+}
+
+function aulaJaOcorreu(dataAula) {
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+  return new Date(`${dataAula}T00:00:00`) <= hoje;
 }
 
 function formatarDataCompleta(dataAula) {
@@ -319,6 +327,24 @@ export default function TurmaEspecifica() {
         carregarTudo();
       })
       .catch(() => setErro("Não foi possível cancelar a aula."));
+  }
+
+  async function executarMarcarFalta(aa, aulaId) {
+    const confirmado = await confirmar({
+      titulo: "Marcar falta",
+      mensagem: `Marcar ${aa.alunoNome} como ausente nesta aula? Ele(a) ficará pendente de reagendamento.`,
+      textoConfirmar: "Marcar falta",
+      perigo: true,
+    });
+    if (!confirmado) return;
+
+    setErro(null);
+    marcarFaltaDoAluno(aa.id)
+      .then(() => {
+        invalidarCacheDaAula(aulaId);
+        carregarTudo();
+      })
+      .catch(() => setErro("Não foi possível marcar a falta."));
   }
 
   function abrirModalRemarcar(aa, aulaId) {
@@ -703,6 +729,16 @@ export default function TurmaEspecifica() {
                                       {aa.alunoTelefone}
                                     </span>
                                     <div className={styles["coluna-acoes"]}>
+                                      {aa.status === "AGENDADO" && aulaJaOcorreu(aula.dataAula) && (
+                                        <button
+                                          className={styles["botao-marcar-falta"]}
+                                          onClick={() => executarMarcarFalta(aa, aula.id)}
+                                          title="Marcar falta"
+                                          aria-label={`Marcar falta de ${aa.alunoNome}`}
+                                        >
+                                          <FiUserX size={14} />
+                                        </button>
+                                      )}
                                       <button
                                         className={styles["botao-remarcar"]}
                                         onClick={() => abrirModalRemarcar(aa, aula.id)}
