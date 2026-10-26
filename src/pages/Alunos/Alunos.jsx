@@ -276,7 +276,10 @@ export default function Alunos() {
           <>
             {/* Indicadores */}
             <div className={styles["grade-kpi"]}>
-              <div className={styles["cartao-kpi-destaque"]}>
+              <div
+                className={styles["cartao-kpi-destaque"]}
+                title="Total de alunos cadastrados no sistema, ativos ou não."
+              >
                 <span className={styles["rotulo-kpi"]}>
                   Total de alunos
                 </span>
@@ -290,7 +293,10 @@ export default function Alunos() {
                 </span>
               </div>
 
-              <div className={styles["cartao-kpi"]}>
+              <div
+                className={styles["cartao-kpi"]}
+                title="Alunos com status ativo entre os exibidos nesta página da listagem."
+              >
                 <span className={styles["rotulo-kpi"]}>
                   Alunos ativos
                 </span>
@@ -304,7 +310,10 @@ export default function Alunos() {
                 </span>
               </div>
 
-              <div className={styles["cartao-kpi"]}>
+              <div
+                className={styles["cartao-kpi"]}
+                title="Alunos com status inativo entre os exibidos nesta página da listagem."
+              >
                 <span className={styles["rotulo-kpi"]}>
                   Alunos inativos
                 </span>

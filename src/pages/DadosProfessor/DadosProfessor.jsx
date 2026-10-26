@@ -194,7 +194,10 @@ export default function DadosProfessor() {
                 </div>
               </div>
 
-              <div className={styles["cartao-kpi-turmas"]}>
+              <div
+                className={styles["cartao-kpi-turmas"]}
+                title="Quantidade de turmas atualmente atribuídas a este professor."
+              >
                 <div className={styles["icone-kpi-turmas"]}>
                   <FiCalendar size={16} />
                 </div>
