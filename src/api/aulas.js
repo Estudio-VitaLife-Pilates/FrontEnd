@@ -47,3 +47,12 @@ export function listarAlunosDaAula(aulaId) {
 export function buscarVagasDaAula(aulaId) {
   return api.get(`/aulas/${aulaId}/vagas`);
 }
+
+export function listarAulasDoAlunoPaginadas(alunoId, pagina = 0, tamanho = 10) {
+  return api.get(`/aulas/aluno/${alunoId}`, {
+    params: {
+      page: pagina,
+      size: tamanho,
+    },
+  });
+}

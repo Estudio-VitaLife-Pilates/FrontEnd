@@ -1,16 +1,28 @@
-# React + Vite
+# Frontend Pilates
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicação React/Vite servida por Nginx em container Docker. Para desenvolvimento
+local:
 
-Currently, two official plugins are available:
+```powershell 
+npm ci
+npm run dev
+```
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+O cliente chama a API usando `/api`; em produção, o Nginx das instâncias web
+encaminha esse caminho ao backend privado.
 
-## React Compiler
+## Deploy na AWS
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+O workflow `.github/workflows/aws-deploy-dev.yml` publica automaticamente em
+push para `develop`. Ele cria o build, publica a imagem em
+`frontend/dev:<SHA do commit>` no ECR e faz deploy nas duas instâncias web via
+Systems Manager. O deploy envia e executa `scripts/deploy-frontend.sh` nas
+instâncias; ele instala os pacotes que faltarem, configura o Nginx e atualiza o
+container, sem depender de um script de deploy previamente instalado pelo
+Terraform. Antes do primeiro push, aplique o Terraform no repositório
+`Infraestrutura` para criar os repositórios ECR.
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Configure no repositório GitHub os secrets `AWS_ACCESS_KEY_ID`,
+`AWS_SECRET_ACCESS_KEY` e `AWS_SECRET_SESSION_TOKEN`, além do environment
+`development`. As credenciais precisam permitir push ao ECR, descoberta das
+instâncias EC2 e comandos SSM.

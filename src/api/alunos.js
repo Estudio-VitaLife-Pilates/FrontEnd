@@ -8,6 +8,15 @@ export function listarAlunosDetalhado() {
   return api.get("/alunos/details");
 }
 
+export function listarAlunosDetalhadoPaginado(pagina = 0, tamanho = 10) {
+  return api.get("/alunos", {
+    params: {
+      page: pagina,
+      size: tamanho,
+    },
+  });
+}
+
 export function buscarAlunoPorId(id) {
   return api.get(`/alunos/${id}`);
 }
