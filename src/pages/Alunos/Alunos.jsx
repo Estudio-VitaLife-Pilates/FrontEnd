@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import styles from "./Alunos.module.css";
 import { Navbar } from "../../components/Navbar/Navbar";
 import { cadastrarAluno, listarAlunosDetalhado } from "../../api/alunos";
 import { listarAlunosDaTurma, listarTurmas } from "../../api/turmas";
-import { FiPlus, FiSearch, FiPhone, FiChevronRight } from "react-icons/fi";
+import { listarAlunosAguardandoReagendamento } from "../../api/aulas";
+import { FiPlus, FiSearch, FiPhone, FiChevronRight, FiClock } from "react-icons/fi";
 
 const NOMES_DIA_CURTO = {
   SEGUNDA: "Seg",
@@ -39,13 +40,15 @@ const FORM_VAZIO = {
 
 export default function Alunos() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [alunos, setAlunos] = useState([]);
   const [turmasPorAluno, setTurmasPorAluno] = useState({});
+  const [idsAguardandoReagendamento, setIdsAguardandoReagendamento] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(null);
 
   const [busca, setBusca] = useState("");
-  const [filtroStatus, setFiltroStatus] = useState("");
+  const [filtroStatus, setFiltroStatus] = useState(searchParams.get("status") ?? "");
 
   const [modalAberto, setModalAberto] = useState(false);
   const [form, setForm] = useState(FORM_VAZIO);
@@ -59,9 +62,11 @@ export default function Alunos() {
     setCarregando(true);
     setErro(null);
 
-    Promise.all([listarAlunosDetalhado(), listarTurmas()])
-      .then(([dadosAlunos, dadosTurmas]) =>
-        Promise.all(
+    Promise.all([listarAlunosDetalhado(), listarTurmas(), listarAlunosAguardandoReagendamento()])
+      .then(([dadosAlunos, dadosTurmas, idsAguardando]) => {
+        setIdsAguardandoReagendamento(idsAguardando ?? []);
+
+        return Promise.all(
           dadosTurmas.map((turma) =>
             listarAlunosDaTurma(turma.id).then((detalhe) => ({
               turma,
@@ -79,8 +84,8 @@ export default function Alunos() {
           }
           setTurmasPorAluno(mapa);
           setAlunos(dadosAlunos ?? []);
-        })
-      )
+        });
+      })
       .catch(() => setErro("Não foi possível carregar os alunos."))
       .finally(() => setCarregando(false));
   }
@@ -95,10 +100,12 @@ export default function Alunos() {
       const bateStatus =
         !filtroStatus ||
         (filtroStatus === "ATIVO" && aluno.ativo) ||
-        (filtroStatus === "INATIVO" && !aluno.ativo);
+        (filtroStatus === "INATIVO" && !aluno.ativo) ||
+        (filtroStatus === "AGUARDANDO_REAGENDAMENTO" &&
+          idsAguardandoReagendamento.includes(aluno.id));
       return bateBusca && bateStatus;
     });
-  }, [alunos, busca, filtroStatus]);
+  }, [alunos, busca, filtroStatus, idsAguardandoReagendamento]);
 
   const totalAlunos = alunos.length;
   const totalAtivos = alunos.filter((a) => a.ativo).length;
@@ -203,11 +210,18 @@ export default function Alunos() {
                   id="filtroStatus"
                   className={styles["select-filtro"]}
                   value={filtroStatus}
-                  onChange={(e) => setFiltroStatus(e.target.value)}
+                  onChange={(e) => {
+                    const valor = e.target.value;
+                    setFiltroStatus(valor);
+                    setSearchParams(valor ? { status: valor } : {});
+                  }}
                 >
                   <option value="">Todos</option>
                   <option value="ATIVO">Ativo</option>
                   <option value="INATIVO">Inativo</option>
+                  <option value="AGUARDANDO_REAGENDAMENTO">
+                    Aguardando reagendamento ({idsAguardandoReagendamento.length})
+                  </option>
                 </select>
               </div>
             </div>
@@ -226,6 +240,7 @@ export default function Alunos() {
                 {alunosFiltrados.map((aluno) => {
                   const planoAtivo = (aluno.planos ?? []).find((p) => p.ativo);
                   const turmasDoAluno = turmasPorAluno[aluno.id] ?? [];
+                  const aguardandoReagendamento = idsAguardandoReagendamento.includes(aluno.id);
 
                   return (
                     <div
@@ -256,6 +271,15 @@ export default function Alunos() {
                       </span>
 
                       <div className={styles["coluna-status"]}>
+                        {aguardandoReagendamento && (
+                          <span
+                            className={`${styles.badge} ${styles.badgeReagendamento}`}
+                            title="Tem falta aguardando reagendamento"
+                          >
+                            <FiClock size={12} />
+                            Reagendar
+                          </span>
+                        )}
                         <span
                           className={`${styles.badge} ${
                             aluno.ativo ? styles.badgeAtivo : styles.badgeInativo

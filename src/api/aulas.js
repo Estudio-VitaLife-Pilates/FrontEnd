@@ -20,6 +20,10 @@ export function marcarFaltaDoAluno(aulaAlunoId) {
   return api.put(`/aulas/alunos/${aulaAlunoId}/ausente`);
 }
 
+export function listarAlunosAguardandoReagendamento() {
+  return api.get(`/aulas/alunos/aguardando-reagendamento`);
+}
+
 export function registrarReposicao(aulaDestinoId, alunoId, aulaOrigemId) {
   return api.post(`/aulas/${aulaDestinoId}/reposicao`, { alunoId, aulaOrigemId });
 }

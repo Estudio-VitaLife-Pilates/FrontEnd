@@ -280,7 +280,10 @@ export default function VisaoGeral() {
                   <span className={styles["banner-titulo"]}>Alunos para reagendamento</span>
                   <span className={styles["banner-subtitulo"]}>Aguardando nova data de aula</span>
                 </div>
-                <button className={styles["banner-botao"]} onClick={() => navigate("/alunos")}>
+                <button
+                  className={styles["banner-botao"]}
+                  onClick={() => navigate("/alunos?status=AGUARDANDO_REAGENDAMENTO")}
+                >
                   Ver todos <FiArrowRight size={12} />
                 </button>
               </div>
