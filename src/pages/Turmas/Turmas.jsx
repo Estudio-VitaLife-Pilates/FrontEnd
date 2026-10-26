@@ -218,22 +218,34 @@ export default function Turmas() {
         ) : (
           <>
             <div className={styles["grade-kpi"]}>
-              <div className={styles["cartao-kpi"]}>
+              <div
+                className={styles["cartao-kpi-destaque"]}
+                title="Quantidade total de turmas cadastradas, ativas ou não."
+              >
                 <span className={styles["rotulo-kpi"]}>Total de turmas</span>
                 <span className={styles["valor-kpi"]}>{totalTurmas}</span>
                 <span className={styles["legenda-kpi"]}>cadastradas no studio</span>
               </div>
-              <div className={styles["cartao-kpi"]}>
+              <div
+                className={styles["cartao-kpi"]}
+                title="Turmas atualmente ativas e disponíveis para matrícula."
+              >
                 <span className={styles["rotulo-kpi"]}>Turmas ativas</span>
                 <span className={styles["valor-kpi"]}>{totalAtivas}</span>
                 <span className={styles["legenda-kpi"]}>em funcionamento</span>
               </div>
-              <div className={styles["cartao-kpi"]}>
+              <div
+                className={styles["cartao-kpi"]}
+                title="Turmas desativadas. Ao desativar, as matrículas e aulas futuras dessa turma também são canceladas."
+              >
                 <span className={styles["rotulo-kpi"]}>Turmas inativas</span>
                 <span className={styles["valor-kpi"]}>{totalInativas}</span>
                 <span className={styles["legenda-kpi"]}>pausadas ou encerradas</span>
               </div>
-              <div className={styles["cartao-kpi"]}>
+              <div
+                className={styles["cartao-kpi"]}
+                title="Número de alunos distintos matriculados em pelo menos uma turma, contados uma vez mesmo se estiverem em várias."
+              >
                 <span className={styles["rotulo-kpi"]}>Total de alunos</span>
                 <span className={styles["valor-kpi"]}>{totalAlunos}</span>
                 <span className={styles["legenda-kpi"]}>alunos únicos matriculados</span>
