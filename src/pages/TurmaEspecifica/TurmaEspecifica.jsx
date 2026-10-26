@@ -53,6 +53,7 @@ const ROTULOS_STATUS = {
   REPOSICAO: "Reposição",
   CANCELADA: "Cancelada",
   AUSENTE: "Ausente",
+  REALIZADA: "Presença confirmada",
 };
 
 const ESTILO_STATUS = {
@@ -60,6 +61,7 @@ const ESTILO_STATUS = {
   REPOSICAO: "badgeReposicao",
   CANCELADA: "badgeCancelada",
   AUSENTE: "badgeAusente",
+  REALIZADA: "badgeRealizada",
 };
 
 function statusDaAula(item) {
@@ -729,7 +731,8 @@ export default function TurmaEspecifica() {
                                       {aa.alunoTelefone}
                                     </span>
                                     <div className={styles["coluna-acoes"]}>
-                                      {aa.status === "AGENDADO" && aulaJaOcorreu(aula.dataAula) && (
+                                      {(aa.status === "AGENDADO" || aa.status === "REALIZADA") &&
+                                        aulaJaOcorreu(aula.dataAula) && (
                                         <button
                                           className={styles["botao-marcar-falta"]}
                                           onClick={() => executarMarcarFalta(aa, aula.id)}

@@ -411,6 +411,11 @@
   color: #b3402c;
 }
 
+.badgeRealizada {
+  background: #e6f4ed;
+  color: #2a7a4f;
+}
+
 .texto-desabilitado {
   color: #cccccc;
   font-family: "Inter-Regular", sans-serif;
