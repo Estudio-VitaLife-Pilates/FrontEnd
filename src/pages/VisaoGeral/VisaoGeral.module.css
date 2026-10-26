@@ -175,6 +175,8 @@
 .banner-texto {
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  gap: 3px;
   flex: 1;
   min-width: 0;
 }
@@ -182,6 +184,7 @@
 .banner-valor {
   font-family: "Poppins-Medium", sans-serif;
   font-size: 20.8px;
+  line-height: 1.2;
 }
 
 .banner-amarelo .banner-valor {
@@ -197,15 +200,27 @@
 }
 
 .banner-titulo {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: calc(13.12px * 1.3 * 2);
   color: #2c2c2c;
   font-family: "Inter-Regular", sans-serif;
   font-size: 13.12px;
+  line-height: 1.3;
 }
 
 .banner-subtitulo {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
   color: #999999;
   font-family: "Inter-Regular", sans-serif;
   font-size: 12px;
+  line-height: 1.3;
 }
 
 .banner-botao {
