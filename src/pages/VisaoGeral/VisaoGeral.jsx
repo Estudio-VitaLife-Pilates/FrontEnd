@@ -232,7 +232,10 @@ export default function VisaoGeral() {
           <>
             {/* KPIs */}
             <div className={styles["grade-kpi"]}>
-              <div className={styles["cartao-kpi-destaque"]}>
+              <div
+                className={styles["cartao-kpi-destaque"]}
+                title="Total de alunos ativos cadastrados no sistema."
+              >
                 <div className={styles["kpi-icone"]}>
                   <FiUsers size={16} />
                 </div>
@@ -241,7 +244,10 @@ export default function VisaoGeral() {
                 <span className={styles["legenda-kpi"]}>ativos no sistema</span>
               </div>
 
-              <div className={styles["cartao-kpi"]}>
+              <div
+                className={styles["cartao-kpi"]}
+                title="Média de ocupação das turmas: alunos matriculados dividido pela capacidade de cada turma ativa."
+              >
                 <div className={styles["kpi-icone"]}>
                   <FiPieChart size={16} />
                 </div>
@@ -250,7 +256,10 @@ export default function VisaoGeral() {
                 <span className={styles["legenda-kpi"]}>média das turmas</span>
               </div>
 
-              <div className={styles["cartao-kpi"]}>
+              <div
+                className={styles["cartao-kpi"]}
+                title="Aulas desta semana já marcadas como ocorridas, de todas as programadas na semana."
+              >
                 <div className={styles["kpi-icone"]}>
                   <FiCalendar size={16} />
                 </div>
@@ -259,7 +268,10 @@ export default function VisaoGeral() {
                 <span className={styles["legenda-kpi"]}>de {kpis.aulasProgramadasSemana} programadas</span>
               </div>
 
-              <div className={styles["cartao-kpi"]}>
+              <div
+                className={styles["cartao-kpi"]}
+                title="Percentual de alunos que a academia manteve no mês (100% menos a taxa de saída)."
+              >
                 <div className={styles["kpi-icone"]}>
                   <FiAward size={16} />
                 </div>
@@ -277,8 +289,12 @@ export default function VisaoGeral() {
                 </div>
                 <div className={styles["banner-texto"]}>
                   <span className={styles["banner-valor"]}>{alertas.alunosParaReagendamento}</span>
-                  <span className={styles["banner-titulo"]}>Alunos para reagendamento</span>
-                  <span className={styles["banner-subtitulo"]}>Aguardando nova data de aula</span>
+                  <span className={styles["banner-titulo"]} title="Alunos para reagendamento">
+                    Alunos para reagendamento
+                  </span>
+                  <span className={styles["banner-subtitulo"]} title="Aguardando nova data de aula">
+                    Aguardando nova data de aula
+                  </span>
                 </div>
                 <button
                   className={styles["banner-botao"]}
@@ -294,8 +310,17 @@ export default function VisaoGeral() {
                 </div>
                 <div className={styles["banner-texto"]}>
                   <span className={styles["banner-valor"]}>{alertas.aulasCanceladasMes}</span>
-                  <span className={styles["banner-titulo"]}>Aulas canceladas no mês</span>
-                  <span className={styles["banner-subtitulo"]}>
+                  <span className={styles["banner-titulo"]} title="Aulas canceladas no mês">
+                    Aulas canceladas no mês
+                  </span>
+                  <span
+                    className={styles["banner-subtitulo"]}
+                    title={`${alertas.aulasRemarcadasMes} foram remarcadas (${
+                      alertas.aulasCanceladasMes > 0
+                        ? Math.round((alertas.aulasRemarcadasMes / alertas.aulasCanceladasMes) * 100)
+                        : 0
+                    }%)`}
+                  >
                     {alertas.aulasRemarcadasMes} foram remarcadas (
                     {alertas.aulasCanceladasMes > 0
                       ? Math.round((alertas.aulasRemarcadasMes / alertas.aulasCanceladasMes) * 100)
@@ -314,8 +339,13 @@ export default function VisaoGeral() {
                 </div>
                 <div className={styles["banner-texto"]}>
                   <span className={styles["banner-valor"]}>{alertas.novosAlunosMes}</span>
-                  <span className={styles["banner-titulo"]}>Novos alunos este mês</span>
-                  <span className={styles["banner-subtitulo"]}>
+                  <span className={styles["banner-titulo"]} title="Novos alunos este mês">
+                    Novos alunos este mês
+                  </span>
+                  <span
+                    className={styles["banner-subtitulo"]}
+                    title={`${alertas.desmatriculasMes} desmatrícula(s) no período`}
+                  >
                     {alertas.desmatriculasMes} desmatrícula(s) no período
                   </span>
                 </div>
@@ -467,29 +497,30 @@ export default function VisaoGeral() {
                 </div>
 
                 <div className={styles["grade-metricas-itens"]}>
-                  <div className={styles["item-metrica"]}>
+                  <div
+                    className={styles["item-metrica"]}
+                    title="Alunos cadastrados no sistema neste mês."
+                  >
                     <span className={styles["item-metrica-rotulo"]}>
                       <FiUserPlus size={14} /> Novos alunos
                     </span>
                     <span className={styles["item-metrica-valor"]}>{metricasAlunos.novosAlunos}</span>
-                    <span className={styles["item-metrica-legenda"]}>
-                      {metricasAlunos.variacaoNovosAlunos >= 0 ? "+" : ""}
-                      {metricasAlunos.variacaoNovosAlunos} vs mês anterior
-                    </span>
                   </div>
 
-                  <div className={styles["item-metrica"]}>
+                  <div
+                    className={styles["item-metrica"]}
+                    title="Planos de aluno que deixaram de estar ativos (venceram ou foram cancelados) neste mês."
+                  >
                     <span className={styles["item-metrica-rotulo"]}>
                       <FiUserMinus size={14} /> Desmatriculados
                     </span>
                     <span className={styles["item-metrica-valor"]}>{metricasAlunos.desmatriculados}</span>
-                    <span className={styles["item-metrica-legenda"]}>
-                      {metricasAlunos.variacaoDesmatriculados >= 0 ? "+" : ""}
-                      {metricasAlunos.variacaoDesmatriculados} vs mês anterior
-                    </span>
                   </div>
 
-                  <div className={styles["item-metrica"]}>
+                  <div
+                    className={styles["item-metrica"]}
+                    title="Alunos com falta registrada que ainda não têm uma aula de reposição marcada."
+                  >
                     <span className={styles["item-metrica-rotulo"]}>
                       <FiClock size={14} /> Para reagendamento
                     </span>
@@ -499,12 +530,14 @@ export default function VisaoGeral() {
                     )}
                   </div>
 
-                  <div className={styles["item-metrica"]}>
+                  <div
+                    className={styles["item-metrica"]}
+                    title="Desmatriculados no mês dividido pelos alunos ativos no início do mês."
+                  >
                     <span className={styles["item-metrica-rotulo"]}>
                       <FiTrendingDown size={14} /> Taxa de saída
                     </span>
                     <span className={styles["item-metrica-valor"]}>{formatarPercentual(metricasAlunos.taxaSaida)}</span>
-                    <span className={styles["item-metrica-legenda"]}>Meta: abaixo de 8%</span>
                   </div>
                 </div>
               </div>
@@ -517,37 +550,44 @@ export default function VisaoGeral() {
                 </div>
 
                 <div className={styles["grade-metricas-itens"]}>
-                  <div className={styles["item-metrica"]}>
+                  <div
+                    className={styles["item-metrica"]}
+                    title="Faltas de alunos cuja aula de origem caiu neste mês, resolvidas ou não."
+                  >
                     <span className={styles["item-metrica-rotulo"]}>
                       <FiXCircle size={14} /> Aulas canceladas
                     </span>
                     <span className={styles["item-metrica-valor"]}>{metricasAulas.aulasCanceladas}</span>
-                    {metricasAulas.aulasCanceladas > 0 && (
-                      <span className={styles["item-metrica-legenda-alerta"]}>Acima da média</span>
-                    )}
                   </div>
 
-                  <div className={styles["item-metrica"]}>
+                  <div
+                    className={styles["item-metrica"]}
+                    title="Dessas faltas, quantas já têm uma aula de reposição marcada."
+                  >
                     <span className={styles["item-metrica-rotulo"]}>
                       <FiRepeat size={14} /> Aulas remarcadas
                     </span>
                     <span className={styles["item-metrica-valor"]}>{metricasAulas.aulasRemarcadas}</span>
                   </div>
 
-                  <div className={styles["item-metrica"]}>
+                  <div
+                    className={styles["item-metrica"]}
+                    title="Aulas remarcadas dividido pelas aulas canceladas no mês."
+                  >
                     <span className={styles["item-metrica-rotulo"]}>
                       <FiTrendingUp size={14} /> Taxa de remarcação
                     </span>
                     <span className={styles["item-metrica-valor"]}>{formatarPercentual(metricasAulas.taxaRemarcacao)}</span>
-                    <span className={styles["item-metrica-legenda"]}>Meta: acima de 60%</span>
                   </div>
 
-                  <div className={styles["item-metrica"]}>
+                  <div
+                    className={styles["item-metrica"]}
+                    title="Aulas da turma marcadas como ocorridas (presença confirmada ou dada automaticamente), de todas as programadas no mês."
+                  >
                     <span className={styles["item-metrica-rotulo"]}>
                       <FiCheckCircle size={14} /> Aulas realizadas
                     </span>
                     <span className={styles["item-metrica-valor"]}>{metricasAulas.aulasRealizadas}</span>
-                    <span className={styles["item-metrica-legenda"]}>de {metricasAulas.aulasProgramadas} programadas</span>
                   </div>
                 </div>
               </div>

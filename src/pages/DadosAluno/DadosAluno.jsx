@@ -216,7 +216,7 @@ export default function DadosAluno() {
             listarAlunosDaTurma(turma.id).then((detalhe) => ({
               turma,
               temAluno: (detalhe.alunos ?? []).some(
-                (a) => String(a.id) === String(id)
+                (a) => String(a.id) === String(id) && a.alunoTurmaAtivo
               ),
             }))
           )
