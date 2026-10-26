@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import styles from "./TurmaEspecifica.module.css";
 import { Navbar } from "../../components/Navbar/Navbar";
+import { CalendarioMensal } from "../../components/CalendarioMensal/CalendarioMensal";
+import { useConfirmacao } from "../../hooks/useConfirmacao";
 import {
   buscarTurmaPorId,
   desativarTurma,
@@ -13,12 +15,13 @@ import {
 } from "../../api/turmas";
 import {
   buscarProximasAulasDaTurma,
+  buscarAulasAnterioresDaTurma,
   buscarVagasDaAula,
   listarAlunosDaAula,
   removerAlunoDaAula,
   cancelarAulaDoAluno,
+  marcarFaltaDoAluno,
   registrarReposicao,
-  buscarProximaAulaInfoDaTurma,
 } from "../../api/aulas";
 import { listarProfessores } from "../../api/professores";
 import { listarAlunos } from "../../api/alunos";
@@ -33,6 +36,7 @@ import {
   FiPower,
   FiChevronDown,
   FiRepeat,
+  FiUserX,
 } from "react-icons/fi";
 
 const NOMES_DIA_SEMANA = {
@@ -50,6 +54,7 @@ const ROTULOS_STATUS = {
   REPOSICAO: "Reposição",
   CANCELADA: "Cancelada",
   AUSENTE: "Ausente",
+  REALIZADA: "Presença confirmada",
 };
 
 const ESTILO_STATUS = {
@@ -57,6 +62,7 @@ const ESTILO_STATUS = {
   REPOSICAO: "badgeReposicao",
   CANCELADA: "badgeCancelada",
   AUSENTE: "badgeAusente",
+  REALIZADA: "badgeRealizada",
 };
 
 function statusDaAula(item) {
@@ -96,6 +102,12 @@ function proximaData(diaSemana) {
   return data.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
 }
 
+function aulaJaOcorreu(dataAula) {
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+  return new Date(`${dataAula}T00:00:00`) <= hoje;
+}
+
 function formatarDataCompleta(dataAula) {
   const data = new Date(`${dataAula}T00:00:00`);
   return data.toLocaleDateString("pt-BR", {
@@ -112,6 +124,7 @@ export default function TurmaEspecifica() {
   const [turma, setTurma] = useState(null);
   const [alunosMatriculados, setAlunosMatriculados] = useState([]);
   const [proximasOcorrencias, setProximasOcorrencias] = useState([]);
+  const [aulasAnteriores, setAulasAnteriores] = useState([]);
   const [professores, setProfessores] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(null);
@@ -125,6 +138,7 @@ export default function TurmaEspecifica() {
   const [alunoSelecionado, setAlunoSelecionado] = useState("");
   const [adicionandoAluno, setAdicionandoAluno] = useState(false);
   const [erroAdicionarAluno, setErroAdicionarAluno] = useState(null);
+  const [confirmar, dialogoConfirmacao] = useConfirmacao();
 
   const [ocorrenciaAberta, setOcorrenciaAberta] = useState(null);
   const [alunosPorAula, setAlunosPorAula] = useState({});
@@ -135,6 +149,9 @@ export default function TurmaEspecifica() {
   const [aulaParaRemarcar, setAulaParaRemarcar] = useState(null);
   const [turmasDisponiveis, setTurmasDisponiveis] = useState([]);
   const [turmaDestinoSelecionada, setTurmaDestinoSelecionada] = useState("");
+  const [aulasDaTurmaDestino, setAulasDaTurmaDestino] = useState([]);
+  const [carregandoAulasDestino, setCarregandoAulasDestino] = useState(false);
+  const [aulaDestinoSelecionada, setAulaDestinoSelecionada] = useState(null);
   const [remarcando, setRemarcando] = useState(false);
   const [erroRemarcar, setErroRemarcar] = useState(null);
 
@@ -150,14 +167,16 @@ export default function TurmaEspecifica() {
       buscarTurmaPorId(id),
       listarAlunosDaTurma(id),
       buscarProximasAulasDaTurma(id),
+      buscarAulasAnterioresDaTurma(id),
       listarProfessores(),
     ])
-      .then(([dadosTurma, dadosTurmaComAlunos, dadosOcorrencias, dadosProfessores]) => {
+      .then(([dadosTurma, dadosTurmaComAlunos, dadosOcorrencias, dadosAnteriores, dadosProfessores]) => {
         setTurma(dadosTurma);
         setAlunosMatriculados(
           (dadosTurmaComAlunos?.alunos ?? []).filter((a) => a.alunoTurmaAtivo)
         );
         setProximasOcorrencias(dadosOcorrencias ?? []);
+        setAulasAnteriores(dadosAnteriores ?? []);
         setProfessores(dadosProfessores ?? []);
 
         carregarOcupacaoDasOcorrencias(dadosOcorrencias ?? []);
@@ -181,9 +200,14 @@ export default function TurmaEspecifica() {
     ).then((pares) => setOcupacaoPorAula(Object.fromEntries(pares)));
   }
 
-  function executarDesativar() {
-    if (!window.confirm("Desativar esta turma? Ela deixará de aparecer como ativa."))
-      return;
+  async function executarDesativar() {
+    const confirmado = await confirmar({
+      titulo: "Desativar turma",
+      mensagem: "Desativar esta turma? Ela deixará de aparecer como ativa.",
+      textoConfirmar: "Desativar",
+      perigo: true,
+    });
+    if (!confirmado) return;
 
     desativarTurma(id)
       .then(() => navigate("/turmas"))
@@ -240,13 +264,14 @@ export default function TurmaEspecifica() {
       .finally(() => setAdicionandoAluno(false));
   }
 
-  function executarRemoverAlunoDaTurma(alunoId, nome) {
-    if (
-      !window.confirm(
-        `Remover ${nome} desta turma? As próximas aulas dele nessa turma serão canceladas.`
-      )
-    )
-      return;
+  async function executarRemoverAlunoDaTurma(alunoId, nome) {
+    const confirmado = await confirmar({
+      titulo: "Remover aluno da turma",
+      mensagem: `Remover ${nome} desta turma? As próximas aulas dele nessa turma serão canceladas.`,
+      textoConfirmar: "Remover",
+      perigo: true,
+    });
+    if (!confirmado) return;
 
     removerAlunoDaTurma(id, alunoId)
       .then(() => {
@@ -256,8 +281,14 @@ export default function TurmaEspecifica() {
       .catch(() => setErro("Não foi possível remover o aluno da turma."));
   }
 
-  function executarRemoverAlunoDaAula(aulaAlunoId, nome, aulaId) {
-    if (!window.confirm(`Remover ${nome} desta aula?`)) return;
+  async function executarRemoverAlunoDaAula(aulaAlunoId, nome, aulaId) {
+    const confirmado = await confirmar({
+      titulo: "Remover aluno da aula",
+      mensagem: `Remover ${nome} desta aula?`,
+      textoConfirmar: "Remover",
+      perigo: true,
+    });
+    if (!confirmado) return;
 
     removerAlunoDaAula(aulaAlunoId)
       .then(() => {
@@ -286,8 +317,14 @@ export default function TurmaEspecifica() {
     }
   }
 
-  function executarCancelarAulaAluno(aa, aulaId) {
-    if (!window.confirm(`Cancelar a aula de ${aa.alunoNome} nesta data?`)) return;
+  async function executarCancelarAulaAluno(aa, aulaId) {
+    const confirmado = await confirmar({
+      titulo: "Cancelar aula",
+      mensagem: `Cancelar a aula de ${aa.alunoNome} nesta data?`,
+      textoConfirmar: "Cancelar aula",
+      perigo: true,
+    });
+    if (!confirmado) return;
 
     setErro(null);
     cancelarAulaDoAluno(aa.id)
@@ -296,6 +333,24 @@ export default function TurmaEspecifica() {
         carregarTudo();
       })
       .catch(() => setErro("Não foi possível cancelar a aula."));
+  }
+
+  async function executarMarcarFalta(aa, aulaId) {
+    const confirmado = await confirmar({
+      titulo: "Marcar falta",
+      mensagem: `Marcar ${aa.alunoNome} como ausente nesta aula? Ele(a) ficará pendente de reagendamento.`,
+      textoConfirmar: "Marcar falta",
+      perigo: true,
+    });
+    if (!confirmado) return;
+
+    setErro(null);
+    marcarFaltaDoAluno(aa.id)
+      .then(() => {
+        invalidarCacheDaAula(aulaId);
+        carregarTudo();
+      })
+      .catch(() => setErro("Não foi possível marcar a falta."));
   }
 
   function abrirModalRemarcar(aa, aulaId) {
@@ -311,6 +366,8 @@ export default function TurmaEspecifica() {
       aulaOrigemDaTurma: aulaId,
     });
     setTurmaDestinoSelecionada("");
+    setAulasDaTurmaDestino([]);
+    setAulaDestinoSelecionada(null);
     setModalRemarcarAberto(true);
   }
 
@@ -318,46 +375,51 @@ export default function TurmaEspecifica() {
     setModalRemarcarAberto(false);
     setAulaParaRemarcar(null);
     setErroRemarcar(null);
+    setAulasDaTurmaDestino([]);
+    setAulaDestinoSelecionada(null);
+  }
+
+  function selecionarTurmaDestino(turmaId) {
+    setTurmaDestinoSelecionada(turmaId);
+    setAulaDestinoSelecionada(null);
+    setAulasDaTurmaDestino([]);
+
+    if (!turmaId) return;
+
+    setCarregandoAulasDestino(true);
+    buscarProximasAulasDaTurma(turmaId)
+      .then((dados) => setAulasDaTurmaDestino(dados ?? []))
+      .catch(() =>
+        setErroRemarcar("Não foi possível carregar as aulas dessa turma.")
+      )
+      .finally(() => setCarregandoAulasDestino(false));
   }
 
   function executarRemarcar(event) {
     event.preventDefault();
-    if (!turmaDestinoSelecionada || !aulaParaRemarcar) return;
+    if (!aulaDestinoSelecionada || !aulaParaRemarcar) return;
+
+    if (String(aulaDestinoSelecionada.id) === String(aulaParaRemarcar.aulaOrigemId)) {
+      setErroRemarcar(
+        "Essa é a mesma aula que o aluno já tem marcada. Escolha outra data."
+      );
+      return;
+    }
 
     setErroRemarcar(null);
     setRemarcando(true);
-    buscarProximaAulaInfoDaTurma(turmaDestinoSelecionada)
-      .then((proximaAula) => {
-        const aulaDestinoId = proximaAula?.id;
-
-        if (!aulaDestinoId) {
-          throw new Error(
-            "Não foi possível encontrar a próxima aula dessa turma."
-          );
-        }
-
-        if (String(aulaDestinoId) === String(aulaParaRemarcar.aulaOrigemId)) {
-          throw new Error(
-            "Essa é a mesma aula que o aluno já tem marcada. Escolha uma turma diferente para a reposição."
-          );
-        }
-
-        return registrarReposicao(
-          aulaDestinoId,
-          aulaParaRemarcar.alunoId,
-          aulaParaRemarcar.aulaOrigemId
-        );
-      })
+    registrarReposicao(
+      aulaDestinoSelecionada.id,
+      aulaParaRemarcar.alunoId,
+      aulaParaRemarcar.aulaOrigemId
+    )
       .then(() => {
         invalidarCacheDaAula(aulaParaRemarcar.aulaOrigemDaTurma);
         fecharModalRemarcar();
         carregarTudo();
       })
       .catch((erro) =>
-        setErroRemarcar(
-          erro.message ||
-            "Não foi possível remarcar a aula. A turma escolhida pode não ter uma próxima aula definida."
-        )
+        setErroRemarcar(erro.message || "Não foi possível remarcar a aula.")
       )
       .finally(() => setRemarcando(false));
   }
@@ -388,6 +450,128 @@ export default function TurmaEspecifica() {
       : null;
   const percentualOcupacao =
     ocupados !== null && turma ? Math.round((ocupados / turma.capacidadeMax) * 100) : 0;
+
+  function renderizarCartaoOcorrencia(aula, mostrarOcupacao) {
+    const aberta = ocorrenciaAberta === aula.id;
+    const alunosDaAula = (alunosPorAula[aula.id] ?? []).filter(
+      (aa) => aa.status !== "CANCELADA"
+    );
+    const alunosCarregados = alunosPorAula[aula.id] !== undefined;
+    const carregandoEssa = carregandoAlunosDaAula === aula.id;
+    const ocupacao = ocupacaoPorAula[aula.id];
+
+    return (
+      <div className={styles["cartao-ocorrencia"]} key={aula.id}>
+        <button
+          type="button"
+          className={styles["item-ocorrencia"]}
+          onClick={() => alternarOcorrencia(aula.id)}
+          aria-expanded={aberta}
+        >
+          <span className={styles["data-com-icone"]}>
+            <FiClock size={14} />
+            <span className={styles["data-ocorrencia"]}>
+              {formatarDataCompleta(aula.dataAula)}
+            </span>
+          </span>
+          <span className={styles["ocupacao-ocorrencia"]}>
+            {mostrarOcupacao && ocupacao !== undefined && ocupacao !== null && turma && (
+              <span className={styles["badge-ocupacao"]}>
+                {turma.capacidadeMax - ocupacao}/{turma.capacidadeMax}
+              </span>
+            )}
+            <FiChevronDown
+              size={16}
+              className={`${styles["icone-expandir"]} ${
+                aberta ? styles["icone-expandir-aberto"] : ""
+              }`}
+            />
+          </span>
+        </button>
+
+        {aberta && (
+          <div className={styles["conteudo-ocorrencia"]}>
+            {carregandoEssa ? (
+              <p className={styles["mensagem-info"]}>Carregando alunos…</p>
+            ) : !alunosCarregados || alunosDaAula.length === 0 ? (
+              <p className={styles["mensagem-info"]}>
+                Nenhum aluno confirmado nessa aula ainda.
+              </p>
+            ) : (
+              <div className={styles["tabela-alunos"]}>
+                <div className={styles["linha-cabecalho-alunos"]}>
+                  <span>Nome</span>
+                  <span>Status</span>
+                  <span>Telefone</span>
+                  <span className={styles["coluna-acoes"]}>Ações</span>
+                </div>
+
+                {alunosDaAula.map((aa) => (
+                  <div className={styles["linha-aluno"]} key={aa.id}>
+                    <Link
+                      to={`/alunos/${aa.alunoId}`}
+                      className={styles["nome-com-avatar"]}
+                    >
+                      <div className={styles["avatar-aluno"]}>
+                        {aa.alunoNome
+                          .split(" ")
+                          .slice(0, 2)
+                          .map((p) => p.charAt(0).toUpperCase())
+                          .join("")}
+                      </div>
+                      <span>{aa.alunoNome}</span>
+                    </Link>
+                    <span>
+                      <span
+                        className={`${styles.badgeStatus} ${
+                          styles[statusDaAula(aa).estilo]
+                        }`}
+                      >
+                        {statusDaAula(aa).rotulo}
+                      </span>
+                    </span>
+                    <span className={styles["telefone-aluno"]}>
+                      <FiPhone size={14} />
+                      {aa.alunoTelefone}
+                    </span>
+                    <div className={styles["coluna-acoes"]}>
+                      {(aa.status === "AGENDADO" || aa.status === "REALIZADA") &&
+                        aulaJaOcorreu(aula.dataAula) && (
+                        <button
+                          className={styles["botao-marcar-falta"]}
+                          onClick={() => executarMarcarFalta(aa, aula.id)}
+                          title="Marcar falta"
+                          aria-label={`Marcar falta de ${aa.alunoNome}`}
+                        >
+                          <FiUserX size={14} />
+                        </button>
+                      )}
+                      <button
+                        className={styles["botao-remarcar"]}
+                        onClick={() => abrirModalRemarcar(aa, aula.id)}
+                        title="Remarcar (reposição)"
+                        aria-label={`Remarcar ${aa.alunoNome}`}
+                      >
+                        <FiRepeat size={14} />
+                      </button>
+                      <button
+                        className={styles["botao-cancelar-aula"]}
+                        onClick={() => executarCancelarAulaAluno(aa, aula.id)}
+                        title="Cancelar"
+                        aria-label={`Cancelar aula de ${aa.alunoNome}`}
+                      >
+                        <FiX size={14} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className={styles["pagina-turma"]}>
@@ -589,116 +773,26 @@ export default function TurmaEspecifica() {
                 </p>
               ) : (
                 <div className={styles["lista-ocorrencias"]}>
-                  {proximasOcorrencias.map((aula) => {
-                    const aberta = ocorrenciaAberta === aula.id;
-                    const alunosDaAula = (alunosPorAula[aula.id] ?? []).filter(
-                      (aa) => aa.status !== "CANCELADA"
-                    );
-                    const alunosCarregados = alunosPorAula[aula.id] !== undefined;
-                    const carregandoEssa = carregandoAlunosDaAula === aula.id;
-                    const ocupacao = ocupacaoPorAula[aula.id];
+                  {proximasOcorrencias.map((aula) => renderizarCartaoOcorrencia(aula, true))}
+                </div>
+              )}
+            </div>
 
-                    return (
-                      <div className={styles["cartao-ocorrencia"]} key={aula.id}>
-                        <button
-                          type="button"
-                          className={styles["item-ocorrencia"]}
-                          onClick={() => alternarOcorrencia(aula.id)}
-                          aria-expanded={aberta}
-                        >
-                          <span className={styles["data-com-icone"]}>
-                            <FiClock size={14} />
-                            <span className={styles["data-ocorrencia"]}>
-                              {formatarDataCompleta(aula.dataAula)}
-                            </span>
-                          </span>
-                          <span className={styles["ocupacao-ocorrencia"]}>
-                            {ocupacao !== undefined && ocupacao !== null && turma && (
-                              <span className={styles["badge-ocupacao"]}>
-                                {turma.capacidadeMax - ocupacao}/{turma.capacidadeMax}
-                              </span>
-                            )}
-                            <FiChevronDown
-                              size={16}
-                              className={`${styles["icone-expandir"]} ${
-                                aberta ? styles["icone-expandir-aberto"] : ""
-                              }`}
-                            />
-                          </span>
-                        </button>
+            <div className={styles["secao-ocorrencias"]}>
+              <div className={styles["cabecalho-secao"]}>
+                <div className={styles["titulo-com-contagem"]}>
+                  <FiClock size={16} />
+                  <h2 className={styles["titulo-secao"]}>Aulas anteriores</h2>
+                </div>
+              </div>
 
-                        {aberta && (
-                          <div className={styles["conteudo-ocorrencia"]}>
-                            {carregandoEssa ? (
-                              <p className={styles["mensagem-info"]}>Carregando alunos…</p>
-                            ) : !alunosCarregados || alunosDaAula.length === 0 ? (
-                              <p className={styles["mensagem-info"]}>
-                                Nenhum aluno confirmado nessa aula ainda.
-                              </p>
-                            ) : (
-                              <div className={styles["tabela-alunos"]}>
-                                <div className={styles["linha-cabecalho-alunos"]}>
-                                  <span>Nome</span>
-                                  <span>Status</span>
-                                  <span>Telefone</span>
-                                  <span className={styles["coluna-acoes"]}>Ações</span>
-                                </div>
-
-                                {alunosDaAula.map((aa) => (
-                                  <div className={styles["linha-aluno"]} key={aa.id}>
-                                    <Link
-                                      to={`/alunos/${aa.alunoId}`}
-                                      className={styles["nome-com-avatar"]}
-                                    >
-                                      <div className={styles["avatar-aluno"]}>
-                                        {aa.alunoNome
-                                          .split(" ")
-                                          .slice(0, 2)
-                                          .map((p) => p.charAt(0).toUpperCase())
-                                          .join("")}
-                                      </div>
-                                      <span>{aa.alunoNome}</span>
-                                    </Link>
-                                    <span>
-                                      <span
-                                        className={`${styles.badgeStatus} ${
-                                          styles[statusDaAula(aa).estilo]
-                                        }`}
-                                      >
-                                        {statusDaAula(aa).rotulo}
-                                      </span>
-                                    </span>
-                                    <span className={styles["telefone-aluno"]}>
-                                      <FiPhone size={14} />
-                                      {aa.alunoTelefone}
-                                    </span>
-                                    <div className={styles["coluna-acoes"]}>
-                                      <button
-                                        className={styles["botao-remarcar"]}
-                                        onClick={() => abrirModalRemarcar(aa, aula.id)}
-                                        title="Remarcar (reposição)"
-                                        aria-label={`Remarcar ${aa.alunoNome}`}
-                                      >
-                                        <FiRepeat size={14} />
-                                      </button>
-                                      <button
-                                        className={styles["botao-cancelar-aula"]}
-                                        onClick={() => executarCancelarAulaAluno(aa, aula.id)}
-                                        title="Cancelar"
-                                        aria-label={`Cancelar aula de ${aa.alunoNome}`}
-                                      >
-                                        <FiX size={14} />
-                                      </button>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+              {aulasAnteriores.length === 0 ? (
+                <p className={styles["mensagem-info"]}>
+                  Nenhuma aula anterior registrada ainda para esta turma.
+                </p>
+              ) : (
+                <div className={styles["lista-ocorrencias"]}>
+                  {aulasAnteriores.map((aula) => renderizarCartaoOcorrencia(aula, false))}
                 </div>
               )}
             </div>
@@ -764,10 +858,8 @@ export default function TurmaEspecifica() {
           <div className={styles["caixa-modal"]} onClick={(e) => e.stopPropagation()}>
             <h2 className={styles["titulo-modal"]}>Remarcar aula (reposição)</h2>
             <p className={styles["texto-explicativo-modal"]}>
-              Escolha a turma em que {aulaParaRemarcar?.alunoNome} vai fazer a
-              aula de reposição. A vaga será na próxima aula dessa turma — se
-              ainda não existir nenhuma aula futura marcada, ela será criada
-              automaticamente.
+              Escolha a turma e a data em que {aulaParaRemarcar?.alunoNome} vai
+              fazer a aula de reposição.
             </p>
 
             {erroRemarcar && (
@@ -783,7 +875,7 @@ export default function TurmaEspecifica() {
                   id="turmaDestino"
                   className={styles["input-modal"]}
                   value={turmaDestinoSelecionada}
-                  onChange={(e) => setTurmaDestinoSelecionada(e.target.value)}
+                  onChange={(e) => selecionarTurmaDestino(e.target.value)}
                   required
                 >
                   <option value="" disabled>
@@ -797,6 +889,21 @@ export default function TurmaEspecifica() {
                 </select>
               </div>
 
+              {turmaDestinoSelecionada && (
+                <div className={styles["grupo-campo"]}>
+                  <label className={styles["rotulo-campo"]}>Data da reposição</label>
+                  {carregandoAulasDestino ? (
+                    <p className={styles["mensagem-info"]}>Carregando datas…</p>
+                  ) : (
+                    <CalendarioMensal
+                      aulas={aulasDaTurmaDestino}
+                      aulaSelecionadaId={aulaDestinoSelecionada?.id}
+                      onSelecionarAula={setAulaDestinoSelecionada}
+                    />
+                  )}
+                </div>
+              )}
+
               <div className={styles["acoes-modal"]}>
                 <button
                   type="button"
@@ -808,7 +915,7 @@ export default function TurmaEspecifica() {
                 <button
                   type="submit"
                   className={styles["botao-salvar"]}
-                  disabled={remarcando || !turmaDestinoSelecionada}
+                  disabled={remarcando || !aulaDestinoSelecionada}
                 >
                   {remarcando ? "Remarcando…" : "Remarcar"}
                 </button>
@@ -870,6 +977,8 @@ export default function TurmaEspecifica() {
           </div>
         </div>
       )}
+
+      {dialogoConfirmacao}
     </div>
   );
 }

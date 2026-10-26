@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import styles from "./Planos.module.css";
 import { Navbar } from "../../components/Navbar/Navbar";
+import { useConfirmacao } from "../../hooks/useConfirmacao";
 import {
   cadastrarPlano,
   editarPlano,
   listarPlanosDetalhado,
   removerPlano,
 } from "../../api/planos";
-import { FiUsers, FiTrendingUp, FiBarChart2, FiLayers, FiEdit2, FiTrash2 } from "react-icons/fi";
+import { FiUsers, FiTrendingUp, FiDollarSign, FiLayers, FiEdit2, FiTrash2 } from "react-icons/fi";
 import iconeMais from "../../assets/icone-mais.svg";
 
 function rotuloGrupo(validadeDias) {
@@ -41,6 +42,7 @@ export default function Planos() {
   const [planoEmEdicao, setPlanoEmEdicao] = useState(null);
   const [form, setForm] = useState(FORM_VAZIO);
   const [enviando, setEnviando] = useState(false);
+  const [confirmar, dialogoConfirmacao] = useConfirmacao();
 
   useEffect(() => {
     carregarPlanos();
@@ -64,8 +66,6 @@ export default function Planos() {
     [planos]
   );
 
-  const maxAlunos = Math.max(1, ...planosComContagem.map((p) => p.totalAlunos));
-
   const totalAlunosGeral = planosComContagem.reduce(
     (soma, p) => soma + p.totalAlunos,
     0
@@ -77,10 +77,10 @@ export default function Planos() {
     null
   );
 
-  const mediaPorPlano =
-    planosComContagem.length > 0
-      ? Math.round(totalAlunosGeral / planosComContagem.length)
-      : 0;
+  const receitaMensalRecorrente = planosComContagem.reduce(
+    (soma, p) => soma + (p.valorMensal ?? 0) * p.totalAlunos,
+    0
+  );
 
   const grupos = useMemo(() => {
     const mapa = new Map();
@@ -149,13 +149,14 @@ export default function Planos() {
       .finally(() => setEnviando(false));
   }
 
-  function executarRemocao(plano) {
-    if (
-      !window.confirm(
-        `Excluir o plano "${plano.nome}"? Essa ação não pode ser desfeita.`
-      )
-    )
-      return;
+  async function executarRemocao(plano) {
+    const confirmado = await confirmar({
+      titulo: "Excluir plano",
+      mensagem: `Excluir o plano "${plano.nome}"? Essa ação não pode ser desfeita.`,
+      textoConfirmar: "Excluir",
+      perigo: true,
+    });
+    if (!confirmado) return;
 
     removerPlano(plano.id)
       .then(carregarPlanos)
@@ -211,11 +212,11 @@ export default function Planos() {
 
               <div className={styles["cartao-kpi"]}>
                 <div className={styles["icone-kpi"]}>
-                  <FiBarChart2 size={16} />
+                  <FiDollarSign size={16} />
                 </div>
-                <span className={styles["rotulo-kpi"]}>Média por plano</span>
-                <span className={styles["valor-kpi"]}>{mediaPorPlano}</span>
-                <span className={styles["legenda-kpi"]}>alunos por plano</span>
+                <span className={styles["rotulo-kpi"]}>Receita mensal recorrente</span>
+                <span className={styles["valor-kpi"]}>{formatarMoeda(receitaMensalRecorrente)}</span>
+                <span className={styles["legenda-kpi"]}>somando planos ativos</span>
               </div>
 
               <div className={styles["cartao-kpi"]}>
@@ -241,7 +242,7 @@ export default function Planos() {
                   <div className={styles["linha-cabecalho"]}>
                     <span>Plano</span>
                     <span className={styles["coluna-central"]}>Alunos</span>
-                    <span className={styles["coluna-central"]}>Distribuição</span>
+                    <span className={styles["coluna-central"]}>% do total de alunos</span>
                     <span className={styles["coluna-valor"]}>Valor</span>
                     <span className={styles["coluna-acoes"]}>Ações</span>
                   </div>
@@ -260,13 +261,24 @@ export default function Planos() {
                         {plano.totalAlunos}
                       </span>
 
-                      <div className={styles["barra-distribuicao"]}>
-                        <div
-                          className={styles["barra-preenchida"]}
-                          style={{
-                            width: `${(plano.totalAlunos / maxAlunos) * 100}%`,
-                          }}
-                        />
+                      <div className={styles["celula-distribuicao"]}>
+                        <div className={styles["barra-distribuicao"]}>
+                          <div
+                            className={styles["barra-preenchida"]}
+                            style={{
+                              width: `${
+                                totalAlunosGeral > 0
+                                  ? (plano.totalAlunos / totalAlunosGeral) * 100
+                                  : 0
+                              }%`,
+                            }}
+                          />
+                        </div>
+                        <span className={styles["texto-percentual"]}>
+                          {totalAlunosGeral > 0
+                            ? `${Math.round((plano.totalAlunos / totalAlunosGeral) * 100)}%`
+                            : "—"}
+                        </span>
                       </div>
 
                       <span className={styles["valor-plano"]}>
@@ -339,18 +351,22 @@ export default function Planos() {
 
               <div className={styles["grupo-campo"]}>
                 <label className={styles["rotulo-campo"]} htmlFor="validadeDias">
-                  Validade (dias)
+                  Validade
                 </label>
-                <input
+                <select
                   id="validadeDias"
-                  type="number"
-                  min="1"
                   className={styles["input-modal"]}
-                  placeholder="Ex: 30"
                   value={form.validadeDias}
                   onChange={setValorCampo("validadeDias")}
                   required
-                />
+                >
+                  <option value="" disabled>
+                    Selecione a validade
+                  </option>
+                  <option value="30">Mensal (30 dias)</option>
+                  <option value="90">Trimestral (90 dias)</option>
+                  <option value="365">Anual (365 dias)</option>
+                </select>
               </div>
 
               <div className={styles["grupo-campo"]}>
@@ -386,6 +402,8 @@ export default function Planos() {
           </div>
         </div>
       )}
+
+      {dialogoConfirmacao}
     </div>
   );
 }

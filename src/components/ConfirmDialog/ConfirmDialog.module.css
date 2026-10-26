@@ -1,0 +1,71 @@
+.fundo-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(44, 44, 44, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 20;
+}
+
+.caixa-modal {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 32px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.titulo-modal {
+  color: #2c2c2c;
+  font-family: "Poppins-Medium", sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+
+.texto-modal {
+  color: #5a4f4d;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+.acoes-modal {
+  display: flex;
+  gap: 12px;
+}
+
+.botao-cancelar,
+.botao-confirmar {
+  flex: 1;
+  height: 48px;
+  border-radius: 14px;
+  border: none;
+  font-family: "Inter-Medium", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.botao-cancelar {
+  background: #f0e6e0;
+  color: #2c2c2c;
+}
+
+.botao-confirmar {
+  background: #d97960;
+  color: #ffffff;
+}
+
+.botao-perigo {
+  background: #c85a54;
+}
+
+.botao-cancelar:hover,
+.botao-confirmar:hover {
+  opacity: 0.9;
+}

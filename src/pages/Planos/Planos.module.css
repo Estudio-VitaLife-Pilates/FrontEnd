@@ -244,7 +244,14 @@
   font-size: 16px;
 }
 
+.celula-distribuicao {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .barra-distribuicao {
+  flex: 1;
   height: 6px;
   border-radius: 999px;
   background: #e8d5d1;
@@ -255,6 +262,15 @@
   height: 100%;
   border-radius: 999px;
   background: linear-gradient(90deg, #d97960, #c85a54);
+}
+
+.texto-percentual {
+  color: #5a4f4d;
+  font-family: "Inter-Medium", sans-serif;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  min-width: 32px;
+  text-align: right;
 }
 
 .valor-plano {

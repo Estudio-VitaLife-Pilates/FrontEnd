@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import styles from "./Alunos.module.css";
 import { Navbar } from "../../components/Navbar/Navbar";
 import {
@@ -7,11 +7,13 @@ import {
   listarAlunosDetalhadoPaginado,
 } from "../../api/alunos";
 import { listarAlunosDaTurma, listarTurmas } from "../../api/turmas";
+import { listarAlunosAguardandoReagendamento } from "../../api/aulas";
 import {
   FiPlus,
   FiSearch,
   FiPhone,
   FiChevronRight,
+  FiClock,
 } from "react-icons/fi";
 
 const NOMES_DIA_CURTO = {
@@ -48,10 +50,12 @@ const FORM_VAZIO = {
 
 export default function Alunos() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Dados dos alunos
   const [alunos, setAlunos] = useState([]);
   const [turmasPorAluno, setTurmasPorAluno] = useState({});
+  const [idsAguardandoReagendamento, setIdsAguardandoReagendamento] = useState([]);
 
   // Estados de carregamento e erro
   const [carregando, setCarregando] = useState(true);
@@ -59,7 +63,7 @@ export default function Alunos() {
 
   // Estados dos filtros
   const [busca, setBusca] = useState("");
-  const [filtroStatus, setFiltroStatus] = useState("");
+  const [filtroStatus, setFiltroStatus] = useState(searchParams.get("status") ?? "");
 
   // Estados da paginação
   const [pagina, setPagina] = useState(0);
@@ -81,10 +85,12 @@ export default function Alunos() {
     Promise.all([
       listarAlunosDetalhadoPaginado(paginaAtual, tamanhoPagina),
       listarTurmas(),
+      listarAlunosAguardandoReagendamento(),
     ])
-      .then(([respostaAlunos, dadosTurmas]) => {
-        // Aceita resposta Axios ou dados já tratados pelo api.js
+      .then(([respostaAlunos, dadosTurmas, idsAguardando]) => {
+        setIdsAguardandoReagendamento(idsAguardando ?? []);
 
+        // Aceita resposta Axios ou dados já tratados pelo api.js
         const dadosPaginados = respostaAlunos?.data ?? respostaAlunos;
 
         // Aceita tanto um array quanto a resposta paginada do Spring.
@@ -98,7 +104,7 @@ export default function Alunos() {
           dadosTurmas.map((turma) =>
             listarAlunosDaTurma(turma.id).then((detalhe) => ({
               turma,
-              alunos: detalhe?.alunos ?? [],
+              alunos: (detalhe?.alunos ?? []).filter((a) => a.alunoTurmaAtivo),
             }))
           )
         ).then((porTurma) => {
@@ -161,11 +167,13 @@ export default function Alunos() {
       const bateStatus =
         !filtroStatus ||
         (filtroStatus === "ATIVO" && aluno.ativo) ||
-        (filtroStatus === "INATIVO" && !aluno.ativo);
+        (filtroStatus === "INATIVO" && !aluno.ativo) ||
+        (filtroStatus === "AGUARDANDO_REAGENDAMENTO" &&
+          idsAguardandoReagendamento.includes(aluno.id));
 
       return bateBusca && bateStatus;
     });
-  }, [alunos, busca, filtroStatus]);
+  }, [alunos, busca, filtroStatus, idsAguardandoReagendamento]);
 
   // Indicadores
   const totalAlunos = totalRegistros;
@@ -349,13 +357,18 @@ export default function Alunos() {
                   id="filtroStatus"
                   className={styles["select-filtro"]}
                   value={filtroStatus}
-                  onChange={(e) =>
-                    setFiltroStatus(e.target.value)
-                  }
+                  onChange={(e) => {
+                    const valor = e.target.value;
+                    setFiltroStatus(valor);
+                    setSearchParams(valor ? { status: valor } : {});
+                  }}
                 >
                   <option value="">Todos</option>
                   <option value="ATIVO">Ativo</option>
                   <option value="INATIVO">Inativo</option>
+                  <option value="AGUARDANDO_REAGENDAMENTO">
+                    Aguardando reagendamento ({idsAguardandoReagendamento.length})
+                  </option>
                 </select>
               </div>
             </div>
@@ -383,6 +396,9 @@ export default function Alunos() {
 
                   const turmasDoAluno =
                     turmasPorAluno[aluno.id] ?? [];
+
+                  const aguardandoReagendamento =
+                    idsAguardandoReagendamento.includes(aluno.id);
 
                   return (
                     <div
@@ -425,6 +441,15 @@ export default function Alunos() {
                       </span>
 
                       <div className={styles["coluna-status"]}>
+                        {aguardandoReagendamento && (
+                          <span
+                            className={`${styles.badge} ${styles.badgeReagendamento}`}
+                            title="Tem falta aguardando reagendamento"
+                          >
+                            <FiClock size={12} />
+                            Reagendar
+                          </span>
+                        )}
                         <span
                           className={`${styles.badge} ${aluno.ativo
                             ? styles.badgeAtivo

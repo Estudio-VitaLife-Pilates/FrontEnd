@@ -1,0 +1,130 @@
+.calendario {
+  background: #ffffff;
+  border: 0.8px solid #e8e8e8;
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.cabecalho-calendario {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.titulo-mes {
+  color: #2c2c2c;
+  font-family: "Poppins-Medium", sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.botao-navegacao {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 0.8px solid #e8e8e8;
+  background: #ffffff;
+  color: #5a4f4d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.botao-navegacao:hover {
+  background-color: #f0e6e0;
+}
+
+.grade-dias-semana,
+.grade-calendario {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.grade-dias-semana {
+  margin-bottom: 4px;
+}
+
+.dia-semana {
+  text-align: center;
+  color: #999999;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  padding-bottom: 6px;
+}
+
+.celula-dia {
+  position: relative;
+  aspect-ratio: 1;
+  border: none;
+  background: none;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+  transition: background-color 0.2s ease;
+}
+
+.numero-dia {
+  color: #cccccc;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 13px;
+}
+
+.celula-fora-do-mes .numero-dia {
+  color: #ececec;
+}
+
+.celula-hoje .numero-dia {
+  color: #2c2c2c;
+  font-weight: 600;
+}
+
+.celula-com-aula {
+  cursor: pointer;
+}
+
+.celula-com-aula .numero-dia {
+  color: #2c2c2c;
+  font-family: "Inter-Medium", sans-serif;
+  font-weight: 500;
+}
+
+.celula-com-aula:hover {
+  background-color: #f0e6e0;
+}
+
+.marcador-aula {
+  position: absolute;
+  bottom: 6px;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: #d97960;
+}
+
+.celula-selecionada {
+  background-color: #d97960;
+}
+
+.celula-selecionada .numero-dia {
+  color: #ffffff;
+}
+
+.celula-selecionada .marcador-aula {
+  background: #ffffff;
+}
+
+.mensagem-vazia {
+  color: #999999;
+  font-family: "Inter-Regular", sans-serif;
+  font-size: 13px;
+  text-align: center;
+  margin-top: 8px;
+}

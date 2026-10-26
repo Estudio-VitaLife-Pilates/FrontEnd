@@ -293,6 +293,14 @@
   color: #c85a54;
 }
 
+.badgeReagendamento {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #fff3e0;
+  color: #b8860b;
+}
+
 .icone-seta {
   position: absolute;
   right: 28px;

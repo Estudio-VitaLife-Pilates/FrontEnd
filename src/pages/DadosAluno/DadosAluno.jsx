@@ -2,11 +2,14 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import styles from "./DadosAluno.module.css";
 import { Navbar } from "../../components/Navbar/Navbar";
+import { CalendarioMensal } from "../../components/CalendarioMensal/CalendarioMensal";
+import { useConfirmacao } from "../../hooks/useConfirmacao";
 import {
   associarPlano,
   buscarAlunoDetalhadoPorId,
   editarAluno,
   inativarAluno,
+  reativarAluno,
 } from "../../api/alunos";
 import {
   adicionarAlunoNaTurma,
@@ -19,7 +22,7 @@ import {
   cancelarAulaDoAluno,
   listarAulasDoAlunoPaginadas,
   registrarReposicao,
-  buscarProximaAulaInfoDaTurma,
+  buscarProximasAulasDaTurma,
 } from "../../api/aulas";
 import {
   FiArrowLeft,
@@ -27,6 +30,7 @@ import {
   FiMail,
   FiCreditCard,
   FiUserX,
+  FiUserCheck,
   FiUsers,
   FiEdit2,
   FiX,
@@ -60,6 +64,7 @@ const ROTULOS_STATUS = {
   REPOSICAO: "Reposição",
   CANCELADA: "Cancelada",
   AUSENTE: "Ausente",
+  REALIZADA: "Presença confirmada",
 };
 
 const ESTILO_STATUS = {
@@ -67,6 +72,7 @@ const ESTILO_STATUS = {
   REPOSICAO: "badgeReposicao",
   CANCELADA: "badgeCancelada",
   AUSENTE: "badgeAusente",
+  REALIZADA: "badgeRealizada",
 };
 
 function statusDaAula(item) {
@@ -136,11 +142,15 @@ export default function DadosAluno() {
   const [erroDados, setErroDados] = useState(null);
   const [salvandoFicha, setSalvandoFicha] = useState(false);
   const [erroFicha, setErroFicha] = useState(null);
+  const [confirmar, dialogoConfirmacao] = useConfirmacao();
 
   const [modalRemarcarAberto, setModalRemarcarAberto] = useState(false);
   const [aulaParaRemarcar, setAulaParaRemarcar] = useState(null);
   const [turmasDisponiveis, setTurmasDisponiveis] = useState([]);
   const [turmaDestinoSelecionada, setTurmaDestinoSelecionada] = useState("");
+  const [aulasDaTurmaDestino, setAulasDaTurmaDestino] = useState([]);
+  const [carregandoAulasDestino, setCarregandoAulasDestino] = useState(false);
+  const [aulaDestinoSelecionada, setAulaDestinoSelecionada] = useState(null);
   const [remarcando, setRemarcando] = useState(false);
   const [erroRemarcar, setErroRemarcar] = useState(null);
 
@@ -234,18 +244,25 @@ export default function DadosAluno() {
     setPaginaAulas(novaPagina);
   }
 
-  function executarInativar() {
-    if (
-      !window.confirm(
-        `Inativar ${aluno.nome}? O aluno deixará de aparecer como ativo no sistema.`
-      )
-    ) {
-      return;
-    }
+  async function executarInativar() {
+    const confirmado = await confirmar({
+      titulo: "Inativar aluno",
+      mensagem: `Inativar ${aluno.nome}? O aluno deixará de aparecer como ativo no sistema.`,
+      textoConfirmar: "Inativar",
+      perigo: true,
+    });
+    if (!confirmado) return;
 
     inativarAluno(aluno.id)
       .then(() => navigate("/alunos"))
       .catch(() => setAcaoErro("Não foi possível inativar o aluno."));
+  }
+
+  function executarReativar() {
+    setAcaoErro(null);
+    reativarAluno(aluno.id)
+      .then(carregarTudo)
+      .catch(() => setAcaoErro("Não foi possível reativar o aluno."));
   }
 
   function abrirModalFicha() {
@@ -327,10 +344,14 @@ export default function DadosAluno() {
       .finally(() => setSalvandoDados(false));
   }
 
-  function executarCancelar(aula) {
-    if (!window.confirm("Cancelar esta aula do aluno?")) {
-      return;
-    }
+  async function executarCancelar(aula) {
+    const confirmado = await confirmar({
+      titulo: "Cancelar aula",
+      mensagem: "Cancelar esta aula do aluno?",
+      textoConfirmar: "Cancelar aula",
+      perigo: true,
+    });
+    if (!confirmado) return;
 
     setAcaoErro(null);
 
@@ -339,19 +360,15 @@ export default function DadosAluno() {
       .catch(() => setAcaoErro("Não foi possível cancelar a aula."));
   }
 
-  function executarCancelarTurma(turma) {
-    const rotulo = formatarHorarioCurto(
-      turma.diaSemana,
-      turma.horaInicio
-    );
-
-    if (
-      !window.confirm(
-        `Cancelar a matrícula do aluno na turma de ${rotulo}? As aulas futuras dessa turma serão canceladas.`
-      )
-    ) {
-      return;
-    }
+  async function executarCancelarTurma(turma) {
+    const rotulo = formatarHorarioCurto(turma.diaSemana, turma.horaInicio);
+    const confirmado = await confirmar({
+      titulo: "Cancelar matrícula",
+      mensagem: `Cancelar a matrícula do aluno na turma de ${rotulo}? As aulas futuras dessa turma serão canceladas.`,
+      textoConfirmar: "Cancelar matrícula",
+      perigo: true,
+    });
+    if (!confirmado) return;
 
     setAcaoErro(null);
     setCancelandoTurmaId(turma.id);
@@ -381,24 +398,48 @@ export default function DadosAluno() {
 
     setAulaParaRemarcar(aula);
     setTurmaDestinoSelecionada("");
+    setAulasDaTurmaDestino([]);
+    setAulaDestinoSelecionada(null);
     setModalRemarcarAberto(true);
+  }
+
+  function selecionarTurmaDestino(turmaId) {
+    setTurmaDestinoSelecionada(turmaId);
+    setAulaDestinoSelecionada(null);
+    setAulasDaTurmaDestino([]);
+
+    if (!turmaId) return;
+
+    setCarregandoAulasDestino(true);
+    buscarProximasAulasDaTurma(turmaId)
+      .then((dados) => setAulasDaTurmaDestino(dados ?? []))
+      .catch(() =>
+        setErroRemarcar("Não foi possível carregar as aulas dessa turma.")
+      )
+      .finally(() => setCarregandoAulasDestino(false));
   }
 
   function fecharModalRemarcar() {
     setModalRemarcarAberto(false);
+    setAulasDaTurmaDestino([]);
+    setAulaDestinoSelecionada(null);
     setAulaParaRemarcar(null);
     setErroRemarcar(null);
   }
 
   function abrirModalPlano() {
     setErroPlano(null);
+    const idsDosPlanosAtivos = new Set(
+      (aluno?.planos ?? []).filter((p) => p.ativo).map((p) => p.idPlano)
+    );
 
     listarPlanos()
-      .then(setPlanosDisponiveis)
-      .catch(() => {
-        setErroPlano("Não foi possível carregar os planos disponíveis.");
-      });
-
+      .then((planos) =>
+        setPlanosDisponiveis(
+          (planos ?? []).filter((p) => !idsDosPlanosAtivos.has(p.id))
+        )
+      )
+      .catch(() => setErroPlano("Não foi possível carregar os planos disponíveis."));
     setPlanoSelecionado("");
     setModalPlanoAberto(true);
   }
@@ -486,46 +527,25 @@ export default function DadosAluno() {
 
   function executarRemarcar(event) {
     event.preventDefault();
+    if (!aulaDestinoSelecionada || !aulaParaRemarcar) return;
 
-    if (!turmaDestinoSelecionada || !aulaParaRemarcar) {
+    if (String(aulaDestinoSelecionada.id) === String(aulaParaRemarcar.aulaId)) {
+      setErroRemarcar(
+        "Essa é a mesma aula que o aluno já tem marcada. Escolha outra data."
+      );
       return;
     }
 
     setErroRemarcar(null);
     setRemarcando(true);
-
-    buscarProximaAulaInfoDaTurma(turmaDestinoSelecionada)
-      .then((proximaAula) => {
-        const aulaDestinoId = proximaAula?.id;
-
-        if (!aulaDestinoId) {
-          throw new Error(
-            "Essa turma não tem uma próxima aula agendada. Escolha outra turma."
-          );
-        }
-
-        if (
-          String(aulaDestinoId) === String(aulaParaRemarcar.aulaId)
-        ) {
-          throw new Error(
-            "Essa é a mesma aula que o aluno já tem marcada. Escolha uma turma diferente para a reposição."
-          );
-        }
-
-        return registrarReposicao(
-          aulaDestinoId,
-          aluno.id,
-          aulaParaRemarcar.aulaId
-        );
-      })
+    registrarReposicao(aulaDestinoSelecionada.id, aluno.id, aulaParaRemarcar.aulaId)
       .then(() => {
         fecharModalRemarcar();
         carregarTudo();
       })
       .catch((erro) => {
         setErroRemarcar(
-          erro.message ||
-          "Não foi possível remarcar a aula. A turma escolhida pode não ter uma próxima aula definida."
+          erro.message || "Não foi possível remarcar a aula."
         );
       })
       .finally(() => setRemarcando(false));
@@ -859,23 +879,41 @@ export default function DadosAluno() {
             </div>
 
             <div className={styles["cartao-perigo"]}>
-              <div>
-                <p className={styles["titulo-perigo"]}>
-                  Inativar aluno
-                </p>
-                <p className={styles["texto-perigo"]}>
-                  O aluno deixa de aparecer como ativo, mas o histórico é
-                  mantido.
-                </p>
-              </div>
-
-              <button
-                className={styles["botao-inativar-aluno"]}
-                onClick={executarInativar}
-              >
-                <FiUserX size={16} />
-                Inativar
-              </button>
+              {aluno.ativo ? (
+                <>
+                  <div>
+                    <p className={styles["titulo-perigo"]}>Inativar aluno</p>
+                    <p className={styles["texto-perigo"]}>
+                      O aluno deixa de aparecer como ativo, mas o histórico é
+                      mantido.
+                    </p>
+                  </div>
+                  <button
+                    className={styles["botao-inativar-aluno"]}
+                    onClick={executarInativar}
+                  >
+                    <FiUserX size={16} />
+                    Inativar
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <p className={styles["titulo-perigo"]}>Reativar aluno</p>
+                    <p className={styles["texto-perigo"]}>
+                      Volta a aparecer como ativo. Plano e turmas não são
+                      restaurados — matricule de novo se for o caso.
+                    </p>
+                  </div>
+                  <button
+                    className={styles["botao-inativar-aluno"]}
+                    onClick={executarReativar}
+                  >
+                    <FiUserCheck size={16} />
+                    Reativar
+                  </button>
+                </>
+              )}
             </div>
           </>
         )}
@@ -1064,9 +1102,8 @@ export default function DadosAluno() {
             </h2>
 
             <p className={styles["texto-explicativo-modal"]}>
-              Escolha a turma em que o aluno vai fazer a aula de reposição.
-              A vaga será na próxima aula dessa turma — se ainda não existir
-              nenhuma aula futura marcada, ela será criada automaticamente.
+              Escolha a turma e a data em que o aluno vai fazer a aula de
+              reposição.
             </p>
 
             {erroRemarcar && (
@@ -1086,9 +1123,7 @@ export default function DadosAluno() {
                   id="turmaDestino"
                   className={styles["input-modal"]}
                   value={turmaDestinoSelecionada}
-                  onChange={(e) =>
-                    setTurmaDestinoSelecionada(e.target.value)
-                  }
+                  onChange={(e) => selecionarTurmaDestino(e.target.value)}
                   required
                 >
                   <option value="" disabled>
@@ -1106,6 +1141,21 @@ export default function DadosAluno() {
                 </select>
               </div>
 
+              {turmaDestinoSelecionada && (
+                <div className={styles["grupo-campo"]}>
+                  <label className={styles["rotulo-campo"]}>Data da reposição</label>
+                  {carregandoAulasDestino ? (
+                    <p className={styles["mensagem-info"]}>Carregando datas…</p>
+                  ) : (
+                    <CalendarioMensal
+                      aulas={aulasDaTurmaDestino}
+                      aulaSelecionadaId={aulaDestinoSelecionada?.id}
+                      onSelecionarAula={setAulaDestinoSelecionada}
+                    />
+                  )}
+                </div>
+              )}
+
               <div className={styles["acoes-modal"]}>
                 <button
                   type="button"
@@ -1118,7 +1168,7 @@ export default function DadosAluno() {
                 <button
                   type="submit"
                   className={styles["botao-salvar"]}
-                  disabled={remarcando || !turmaDestinoSelecionada}
+                  disabled={remarcando || !aulaDestinoSelecionada}
                 >
                   {remarcando ? "Remarcando…" : "Remarcar"}
                 </button>
@@ -1278,6 +1328,8 @@ export default function DadosAluno() {
           </div>
         </div>
       )}
+
+      {dialogoConfirmacao}
     </div>
   );
 }

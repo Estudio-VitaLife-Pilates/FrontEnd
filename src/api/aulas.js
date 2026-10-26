@@ -16,6 +16,14 @@ export function cancelarAulaDoAluno(aulaAlunoId) {
   return api.put(`/aulas/alunos/${aulaAlunoId}/cancelar`);
 }
 
+export function marcarFaltaDoAluno(aulaAlunoId) {
+  return api.put(`/aulas/alunos/${aulaAlunoId}/ausente`);
+}
+
+export function listarAlunosAguardandoReagendamento() {
+  return api.get(`/aulas/alunos/aguardando-reagendamento`);
+}
+
 export function registrarReposicao(aulaDestinoId, alunoId, aulaOrigemId) {
   return api.post(`/aulas/${aulaDestinoId}/reposicao`, { alunoId, aulaOrigemId });
 }
@@ -26,6 +34,10 @@ export function buscarProximaAulaInfoDaTurma(turmaId) {
 
 export function buscarProximasAulasDaTurma(turmaId) {
   return api.get(`/aulas/turma/${turmaId}/proximas`);
+}
+
+export function buscarAulasAnterioresDaTurma(turmaId) {
+  return api.get(`/aulas/turma/${turmaId}/anteriores`);
 }
 
 export function listarAlunosDaAula(aulaId) {
