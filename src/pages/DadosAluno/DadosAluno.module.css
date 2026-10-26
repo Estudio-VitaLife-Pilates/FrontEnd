@@ -218,6 +218,11 @@
   color: #7a6a9a;
 }
 
+.vencimento-plano {
+  color: #999999;
+  font-size: 12.5px;
+}
+
 .botao-cancelar-turma {
   display: flex;
   align-items: center;
