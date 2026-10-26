@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import styles from "./Planos.module.css";
 import { Navbar } from "../../components/Navbar/Navbar";
 import { useConfirmacao } from "../../hooks/useConfirmacao";
@@ -8,8 +9,24 @@ import {
   listarPlanosDetalhado,
   removerPlano,
 } from "../../api/planos";
-import { FiUsers, FiTrendingUp, FiDollarSign, FiLayers, FiEdit2, FiTrash2 } from "react-icons/fi";
+import {
+  FiUsers,
+  FiTrendingUp,
+  FiDollarSign,
+  FiLayers,
+  FiEdit2,
+  FiTrash2,
+  FiChevronDown,
+  FiChevronUp,
+  FiPhone,
+} from "react-icons/fi";
 import iconeMais from "../../assets/icone-mais.svg";
+
+function formatarData(data) {
+  if (!data) return "—";
+  const [ano, mes, dia] = data.split("-");
+  return `${dia}/${mes}/${ano}`;
+}
 
 function rotuloGrupo(validadeDias) {
   if (validadeDias <= 31) return "mensais";
@@ -34,9 +51,11 @@ const FORM_VAZIO = {
 };
 
 export default function Planos() {
+  const navigate = useNavigate();
   const [planos, setPlanos] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(null);
+  const [planoExpandidoId, setPlanoExpandidoId] = useState(null);
 
   const [modalAberto, setModalAberto] = useState(false);
   const [planoEmEdicao, setPlanoEmEdicao] = useState(null);
@@ -115,6 +134,10 @@ export default function Planos() {
     setModalAberto(true);
   }
 
+  function alternarExpansao(planoId) {
+    setPlanoExpandidoId((atual) => (atual === planoId ? null : planoId));
+  }
+
   function fecharModal() {
     setModalAberto(false);
     setPlanoEmEdicao(null);
@@ -188,7 +211,10 @@ export default function Planos() {
         ) : (
           <>
             <div className={styles["grade-kpi"]}>
-              <div className={styles["cartao-kpi-destaque"]}>
+              <div
+                className={styles["cartao-kpi-destaque"]}
+                title="Soma de alunos com matrícula ativa em qualquer plano."
+              >
                 <div className={styles["icone-kpi"]}>
                   <FiUsers size={16} />
                 </div>
@@ -197,7 +223,10 @@ export default function Planos() {
                 <span className={styles["legenda-kpi"]}>em planos ativos</span>
               </div>
 
-              <div className={styles["cartao-kpi"]}>
+              <div
+                className={styles["cartao-kpi"]}
+                title="Plano com o maior número de alunos ativos matriculados."
+              >
                 <div className={styles["icone-kpi"]}>
                   <FiTrendingUp size={16} />
                 </div>
@@ -210,7 +239,10 @@ export default function Planos() {
                 </span>
               </div>
 
-              <div className={styles["cartao-kpi"]}>
+              <div
+                className={styles["cartao-kpi"]}
+                title="Soma do valor mensal de cada plano multiplicado pelo número de alunos ativos nele."
+              >
                 <div className={styles["icone-kpi"]}>
                   <FiDollarSign size={16} />
                 </div>
@@ -219,7 +251,10 @@ export default function Planos() {
                 <span className={styles["legenda-kpi"]}>somando planos ativos</span>
               </div>
 
-              <div className={styles["cartao-kpi"]}>
+              <div
+                className={styles["cartao-kpi"]}
+                title="Quantidade total de planos cadastrados no studio, independente de terem alunos ou não."
+              >
                 <div className={styles["icone-kpi"]}>
                   <FiLayers size={16} />
                 </div>
@@ -247,63 +282,111 @@ export default function Planos() {
                     <span className={styles["coluna-acoes"]}>Ações</span>
                   </div>
 
-                  {grupo.itens.map((plano) => (
-                    <div className={styles["linha-plano"]} key={plano.id}>
-                      <span className={styles["celula-nome-plano"]}>
-                        <span className={styles["nome-plano"]}>{plano.nome}</span>
-                        <span className={styles["frequencia-plano"]}>
-                          {plano.frequenciaSemanal}x por semana
-                        </span>
-                      </span>
+                  {grupo.itens.map((plano) => {
+                    const expandido = planoExpandidoId === plano.id;
+                    const alunosAtivos = (plano.alunos ?? [])
+                      .filter((a) => a.planoAtivo)
+                      .sort((a, b) => a.nome.localeCompare(b.nome));
 
-                      <span className={styles["alunos-plano"]}>
-                        <FiUsers size={14} />
-                        {plano.totalAlunos}
-                      </span>
+                    return (
+                      <div key={plano.id}>
+                        <div className={styles["linha-plano"]}>
+                          <span className={styles["celula-nome-plano"]}>
+                            <span className={styles["nome-plano"]}>{plano.nome}</span>
+                            <span className={styles["frequencia-plano"]}>
+                              {plano.frequenciaSemanal}x por semana
+                            </span>
+                          </span>
 
-                      <div className={styles["celula-distribuicao"]}>
-                        <div className={styles["barra-distribuicao"]}>
-                          <div
-                            className={styles["barra-preenchida"]}
-                            style={{
-                              width: `${
-                                totalAlunosGeral > 0
-                                  ? (plano.totalAlunos / totalAlunosGeral) * 100
-                                  : 0
-                              }%`,
-                            }}
-                          />
+                          <button
+                            type="button"
+                            className={styles["alunos-plano"]}
+                            onClick={() => alternarExpansao(plano.id)}
+                            aria-label={`Ver alunos do plano ${plano.nome}`}
+                          >
+                            <FiUsers size={14} />
+                            {plano.totalAlunos}
+                            {expandido ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
+                          </button>
+
+                          <div className={styles["celula-distribuicao"]}>
+                            <div className={styles["barra-distribuicao"]}>
+                              <div
+                                className={styles["barra-preenchida"]}
+                                style={{
+                                  width: `${
+                                    totalAlunosGeral > 0
+                                      ? (plano.totalAlunos / totalAlunosGeral) * 100
+                                      : 0
+                                  }%`,
+                                }}
+                              />
+                            </div>
+                            <span className={styles["texto-percentual"]}>
+                              {totalAlunosGeral > 0
+                                ? `${Math.round((plano.totalAlunos / totalAlunosGeral) * 100)}%`
+                                : "—"}
+                            </span>
+                          </div>
+
+                          <span className={styles["valor-plano"]}>
+                            {formatarMoeda(plano.valorMensal)}
+                            <small>/mês</small>
+                          </span>
+
+                          <div className={styles["acoes-plano"]}>
+                            <button
+                              className={styles["botao-icone"]}
+                              onClick={() => abrirEdicao(plano)}
+                              aria-label={`Editar plano ${plano.nome}`}
+                            >
+                              <FiEdit2 size={14} />
+                            </button>
+                            <button
+                              className={`${styles["botao-icone"]} ${styles["botao-icone-perigo"]}`}
+                              onClick={() => executarRemocao(plano)}
+                              aria-label={`Excluir plano ${plano.nome}`}
+                            >
+                              <FiTrash2 size={14} />
+                            </button>
+                          </div>
                         </div>
-                        <span className={styles["texto-percentual"]}>
-                          {totalAlunosGeral > 0
-                            ? `${Math.round((plano.totalAlunos / totalAlunosGeral) * 100)}%`
-                            : "—"}
-                        </span>
-                      </div>
 
-                      <span className={styles["valor-plano"]}>
-                        {formatarMoeda(plano.valorMensal)}
-                        <small>/mês</small>
-                      </span>
-
-                      <div className={styles["acoes-plano"]}>
-                        <button
-                          className={styles["botao-icone"]}
-                          onClick={() => abrirEdicao(plano)}
-                          aria-label={`Editar plano ${plano.nome}`}
-                        >
-                          <FiEdit2 size={14} />
-                        </button>
-                        <button
-                          className={`${styles["botao-icone"]} ${styles["botao-icone-perigo"]}`}
-                          onClick={() => executarRemocao(plano)}
-                          aria-label={`Excluir plano ${plano.nome}`}
-                        >
-                          <FiTrash2 size={14} />
-                        </button>
+                        {expandido && (
+                          <div className={styles["painel-alunos-plano"]}>
+                            {alunosAtivos.length === 0 ? (
+                              <p className={styles["mensagem-info"]}>
+                                Nenhum aluno ativo neste plano.
+                              </p>
+                            ) : (
+                              alunosAtivos.map((aluno) => (
+                                <button
+                                  type="button"
+                                  className={styles["item-aluno-plano"]}
+                                  key={aluno.idAluno}
+                                  onClick={() => navigate(`/alunos/${aluno.idAluno}`)}
+                                >
+                                  <span className={styles["avatar-aluno-plano"]}>
+                                    {(aluno.nome ?? "").charAt(0).toUpperCase()}
+                                  </span>
+                                  <span className={styles["info-aluno-plano"]}>
+                                    <span className={styles["nome-aluno-plano"]}>{aluno.nome}</span>
+                                    <span className={styles["detalhe-aluno-plano"]}>
+                                      <FiPhone size={11} />
+                                      {aluno.telefone || "—"}
+                                    </span>
+                                  </span>
+                                  <span className={styles["desde-aluno-plano"]}>
+                                    desde {formatarData(aluno.dataInicio)}
+                                  </span>
+                                </button>
+                              ))
+                            )}
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             ))}
