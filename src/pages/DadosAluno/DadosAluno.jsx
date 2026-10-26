@@ -661,13 +661,22 @@ export default function DadosAluno() {
                         Plano:
                       </span>{" "}
                       {planoAtivo ? (
-                        <Link
-                          to="/planos"
-                          className={styles["link-inline"]}
-                        >
-                          {planoAtivo.nome} ·{" "}
-                          {planoAtivo.frequenciaSemanal}x/semana
-                        </Link>
+                        <>
+                          <Link
+                            to="/planos"
+                            className={styles["link-inline"]}
+                          >
+                            {planoAtivo.nome} ·{" "}
+                            {planoAtivo.frequenciaSemanal}x/semana
+                          </Link>
+                          <span
+                            className={styles["vencimento-plano"]}
+                            title="Data de vencimento do plano"
+                          >
+                            {" "}
+                            · vence em {formatarData(planoAtivo.dataFim)}
+                          </span>
+                        </>
                       ) : (
                         "Sem plano ativo"
                       )}
