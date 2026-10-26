@@ -70,7 +70,7 @@ export default function Alunos() {
           dadosTurmas.map((turma) =>
             listarAlunosDaTurma(turma.id).then((detalhe) => ({
               turma,
-              alunos: detalhe.alunos ?? [],
+              alunos: (detalhe.alunos ?? []).filter((a) => a.alunoTurmaAtivo),
             }))
           )
         ).then((porTurma) => {
