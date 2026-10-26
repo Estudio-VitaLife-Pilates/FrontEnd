@@ -36,6 +36,10 @@ export function buscarProximasAulasDaTurma(turmaId) {
   return api.get(`/aulas/turma/${turmaId}/proximas`);
 }
 
+export function buscarAulasAnterioresDaTurma(turmaId) {
+  return api.get(`/aulas/turma/${turmaId}/anteriores`);
+}
+
 export function listarAlunosDaAula(aulaId) {
   return api.get(`/aulas/${aulaId}/alunos`);
 }

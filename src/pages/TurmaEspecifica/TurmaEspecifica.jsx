@@ -15,6 +15,7 @@ import {
 } from "../../api/turmas";
 import {
   buscarProximasAulasDaTurma,
+  buscarAulasAnterioresDaTurma,
   buscarVagasDaAula,
   listarAlunosDaAula,
   removerAlunoDaAula,
@@ -123,6 +124,7 @@ export default function TurmaEspecifica() {
   const [turma, setTurma] = useState(null);
   const [alunosMatriculados, setAlunosMatriculados] = useState([]);
   const [proximasOcorrencias, setProximasOcorrencias] = useState([]);
+  const [aulasAnteriores, setAulasAnteriores] = useState([]);
   const [professores, setProfessores] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(null);
@@ -165,14 +167,16 @@ export default function TurmaEspecifica() {
       buscarTurmaPorId(id),
       listarAlunosDaTurma(id),
       buscarProximasAulasDaTurma(id),
+      buscarAulasAnterioresDaTurma(id),
       listarProfessores(),
     ])
-      .then(([dadosTurma, dadosTurmaComAlunos, dadosOcorrencias, dadosProfessores]) => {
+      .then(([dadosTurma, dadosTurmaComAlunos, dadosOcorrencias, dadosAnteriores, dadosProfessores]) => {
         setTurma(dadosTurma);
         setAlunosMatriculados(
           (dadosTurmaComAlunos?.alunos ?? []).filter((a) => a.alunoTurmaAtivo)
         );
         setProximasOcorrencias(dadosOcorrencias ?? []);
+        setAulasAnteriores(dadosAnteriores ?? []);
         setProfessores(dadosProfessores ?? []);
 
         carregarOcupacaoDasOcorrencias(dadosOcorrencias ?? []);
@@ -447,6 +451,128 @@ export default function TurmaEspecifica() {
   const percentualOcupacao =
     ocupados !== null && turma ? Math.round((ocupados / turma.capacidadeMax) * 100) : 0;
 
+  function renderizarCartaoOcorrencia(aula, mostrarOcupacao) {
+    const aberta = ocorrenciaAberta === aula.id;
+    const alunosDaAula = (alunosPorAula[aula.id] ?? []).filter(
+      (aa) => aa.status !== "CANCELADA"
+    );
+    const alunosCarregados = alunosPorAula[aula.id] !== undefined;
+    const carregandoEssa = carregandoAlunosDaAula === aula.id;
+    const ocupacao = ocupacaoPorAula[aula.id];
+
+    return (
+      <div className={styles["cartao-ocorrencia"]} key={aula.id}>
+        <button
+          type="button"
+          className={styles["item-ocorrencia"]}
+          onClick={() => alternarOcorrencia(aula.id)}
+          aria-expanded={aberta}
+        >
+          <span className={styles["data-com-icone"]}>
+            <FiClock size={14} />
+            <span className={styles["data-ocorrencia"]}>
+              {formatarDataCompleta(aula.dataAula)}
+            </span>
+          </span>
+          <span className={styles["ocupacao-ocorrencia"]}>
+            {mostrarOcupacao && ocupacao !== undefined && ocupacao !== null && turma && (
+              <span className={styles["badge-ocupacao"]}>
+                {turma.capacidadeMax - ocupacao}/{turma.capacidadeMax}
+              </span>
+            )}
+            <FiChevronDown
+              size={16}
+              className={`${styles["icone-expandir"]} ${
+                aberta ? styles["icone-expandir-aberto"] : ""
+              }`}
+            />
+          </span>
+        </button>
+
+        {aberta && (
+          <div className={styles["conteudo-ocorrencia"]}>
+            {carregandoEssa ? (
+              <p className={styles["mensagem-info"]}>Carregando alunos…</p>
+            ) : !alunosCarregados || alunosDaAula.length === 0 ? (
+              <p className={styles["mensagem-info"]}>
+                Nenhum aluno confirmado nessa aula ainda.
+              </p>
+            ) : (
+              <div className={styles["tabela-alunos"]}>
+                <div className={styles["linha-cabecalho-alunos"]}>
+                  <span>Nome</span>
+                  <span>Status</span>
+                  <span>Telefone</span>
+                  <span className={styles["coluna-acoes"]}>Ações</span>
+                </div>
+
+                {alunosDaAula.map((aa) => (
+                  <div className={styles["linha-aluno"]} key={aa.id}>
+                    <Link
+                      to={`/alunos/${aa.alunoId}`}
+                      className={styles["nome-com-avatar"]}
+                    >
+                      <div className={styles["avatar-aluno"]}>
+                        {aa.alunoNome
+                          .split(" ")
+                          .slice(0, 2)
+                          .map((p) => p.charAt(0).toUpperCase())
+                          .join("")}
+                      </div>
+                      <span>{aa.alunoNome}</span>
+                    </Link>
+                    <span>
+                      <span
+                        className={`${styles.badgeStatus} ${
+                          styles[statusDaAula(aa).estilo]
+                        }`}
+                      >
+                        {statusDaAula(aa).rotulo}
+                      </span>
+                    </span>
+                    <span className={styles["telefone-aluno"]}>
+                      <FiPhone size={14} />
+                      {aa.alunoTelefone}
+                    </span>
+                    <div className={styles["coluna-acoes"]}>
+                      {(aa.status === "AGENDADO" || aa.status === "REALIZADA") &&
+                        aulaJaOcorreu(aula.dataAula) && (
+                        <button
+                          className={styles["botao-marcar-falta"]}
+                          onClick={() => executarMarcarFalta(aa, aula.id)}
+                          title="Marcar falta"
+                          aria-label={`Marcar falta de ${aa.alunoNome}`}
+                        >
+                          <FiUserX size={14} />
+                        </button>
+                      )}
+                      <button
+                        className={styles["botao-remarcar"]}
+                        onClick={() => abrirModalRemarcar(aa, aula.id)}
+                        title="Remarcar (reposição)"
+                        aria-label={`Remarcar ${aa.alunoNome}`}
+                      >
+                        <FiRepeat size={14} />
+                      </button>
+                      <button
+                        className={styles["botao-cancelar-aula"]}
+                        onClick={() => executarCancelarAulaAluno(aa, aula.id)}
+                        title="Cancelar"
+                        aria-label={`Cancelar aula de ${aa.alunoNome}`}
+                      >
+                        <FiX size={14} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className={styles["pagina-turma"]}>
       <Navbar />
@@ -647,127 +773,26 @@ export default function TurmaEspecifica() {
                 </p>
               ) : (
                 <div className={styles["lista-ocorrencias"]}>
-                  {proximasOcorrencias.map((aula) => {
-                    const aberta = ocorrenciaAberta === aula.id;
-                    const alunosDaAula = (alunosPorAula[aula.id] ?? []).filter(
-                      (aa) => aa.status !== "CANCELADA"
-                    );
-                    const alunosCarregados = alunosPorAula[aula.id] !== undefined;
-                    const carregandoEssa = carregandoAlunosDaAula === aula.id;
-                    const ocupacao = ocupacaoPorAula[aula.id];
+                  {proximasOcorrencias.map((aula) => renderizarCartaoOcorrencia(aula, true))}
+                </div>
+              )}
+            </div>
 
-                    return (
-                      <div className={styles["cartao-ocorrencia"]} key={aula.id}>
-                        <button
-                          type="button"
-                          className={styles["item-ocorrencia"]}
-                          onClick={() => alternarOcorrencia(aula.id)}
-                          aria-expanded={aberta}
-                        >
-                          <span className={styles["data-com-icone"]}>
-                            <FiClock size={14} />
-                            <span className={styles["data-ocorrencia"]}>
-                              {formatarDataCompleta(aula.dataAula)}
-                            </span>
-                          </span>
-                          <span className={styles["ocupacao-ocorrencia"]}>
-                            {ocupacao !== undefined && ocupacao !== null && turma && (
-                              <span className={styles["badge-ocupacao"]}>
-                                {turma.capacidadeMax - ocupacao}/{turma.capacidadeMax}
-                              </span>
-                            )}
-                            <FiChevronDown
-                              size={16}
-                              className={`${styles["icone-expandir"]} ${
-                                aberta ? styles["icone-expandir-aberto"] : ""
-                              }`}
-                            />
-                          </span>
-                        </button>
+            <div className={styles["secao-ocorrencias"]}>
+              <div className={styles["cabecalho-secao"]}>
+                <div className={styles["titulo-com-contagem"]}>
+                  <FiClock size={16} />
+                  <h2 className={styles["titulo-secao"]}>Aulas anteriores</h2>
+                </div>
+              </div>
 
-                        {aberta && (
-                          <div className={styles["conteudo-ocorrencia"]}>
-                            {carregandoEssa ? (
-                              <p className={styles["mensagem-info"]}>Carregando alunos…</p>
-                            ) : !alunosCarregados || alunosDaAula.length === 0 ? (
-                              <p className={styles["mensagem-info"]}>
-                                Nenhum aluno confirmado nessa aula ainda.
-                              </p>
-                            ) : (
-                              <div className={styles["tabela-alunos"]}>
-                                <div className={styles["linha-cabecalho-alunos"]}>
-                                  <span>Nome</span>
-                                  <span>Status</span>
-                                  <span>Telefone</span>
-                                  <span className={styles["coluna-acoes"]}>Ações</span>
-                                </div>
-
-                                {alunosDaAula.map((aa) => (
-                                  <div className={styles["linha-aluno"]} key={aa.id}>
-                                    <Link
-                                      to={`/alunos/${aa.alunoId}`}
-                                      className={styles["nome-com-avatar"]}
-                                    >
-                                      <div className={styles["avatar-aluno"]}>
-                                        {aa.alunoNome
-                                          .split(" ")
-                                          .slice(0, 2)
-                                          .map((p) => p.charAt(0).toUpperCase())
-                                          .join("")}
-                                      </div>
-                                      <span>{aa.alunoNome}</span>
-                                    </Link>
-                                    <span>
-                                      <span
-                                        className={`${styles.badgeStatus} ${
-                                          styles[statusDaAula(aa).estilo]
-                                        }`}
-                                      >
-                                        {statusDaAula(aa).rotulo}
-                                      </span>
-                                    </span>
-                                    <span className={styles["telefone-aluno"]}>
-                                      <FiPhone size={14} />
-                                      {aa.alunoTelefone}
-                                    </span>
-                                    <div className={styles["coluna-acoes"]}>
-                                      {(aa.status === "AGENDADO" || aa.status === "REALIZADA") &&
-                                        aulaJaOcorreu(aula.dataAula) && (
-                                        <button
-                                          className={styles["botao-marcar-falta"]}
-                                          onClick={() => executarMarcarFalta(aa, aula.id)}
-                                          title="Marcar falta"
-                                          aria-label={`Marcar falta de ${aa.alunoNome}`}
-                                        >
-                                          <FiUserX size={14} />
-                                        </button>
-                                      )}
-                                      <button
-                                        className={styles["botao-remarcar"]}
-                                        onClick={() => abrirModalRemarcar(aa, aula.id)}
-                                        title="Remarcar (reposição)"
-                                        aria-label={`Remarcar ${aa.alunoNome}`}
-                                      >
-                                        <FiRepeat size={14} />
-                                      </button>
-                                      <button
-                                        className={styles["botao-cancelar-aula"]}
-                                        onClick={() => executarCancelarAulaAluno(aa, aula.id)}
-                                        title="Cancelar"
-                                        aria-label={`Cancelar aula de ${aa.alunoNome}`}
-                                      >
-                                        <FiX size={14} />
-                                      </button>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+              {aulasAnteriores.length === 0 ? (
+                <p className={styles["mensagem-info"]}>
+                  Nenhuma aula anterior registrada ainda para esta turma.
+                </p>
+              ) : (
+                <div className={styles["lista-ocorrencias"]}>
+                  {aulasAnteriores.map((aula) => renderizarCartaoOcorrencia(aula, false))}
                 </div>
               )}
             </div>
