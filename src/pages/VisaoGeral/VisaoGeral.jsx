@@ -373,7 +373,12 @@ export default function VisaoGeral() {
                   <p className={styles["mensagem-info"]}>Nenhum aluno cadastrado recentemente.</p>
                 ) : (
                   alunosRecentes.map((aluno, indice) => (
-                    <div className={styles["linha-aluno-recente"]} key={aluno.id}>
+                    <button
+                      type="button"
+                      className={styles["linha-aluno-recente"]}
+                      key={aluno.id}
+                      onClick={() => navigate(`/alunos/${aluno.id}`)}
+                    >
                       <div
                         className={styles["avatar-recente"]}
                         style={{ background: CORES_AVATAR[indice % CORES_AVATAR.length] }}
@@ -393,7 +398,7 @@ export default function VisaoGeral() {
                           {formatarCadastroRelativo(aluno.dataCadastro)}
                         </span>
                       </div>
-                    </div>
+                    </button>
                   ))
                 )}
               </div>
@@ -425,7 +430,13 @@ export default function VisaoGeral() {
                   <p className={styles["mensagem-info"]}>Nenhuma aula programada.</p>
                 ) : (
                   aulasHoje.map((aula, indice) => (
-                    <div className={styles["linha-agenda"]} key={aula.id}>
+                    <button
+                      type="button"
+                      className={styles["linha-agenda"]}
+                      key={aula.id}
+                      onClick={() => aula.turmaId && navigate(`/turmas/${aula.turmaId}`)}
+                      disabled={!aula.turmaId}
+                    >
                       <span className={styles["hora-agenda"]}>{formatarHoraCurta(aula.horaInicio)}</span>
                       <span
                         className={styles["ponto-agenda"]}
@@ -437,7 +448,7 @@ export default function VisaoGeral() {
                           {NOMES_DIA_CURTO[aula.turmaDiaSemana] ?? aula.turmaDiaSemana}, {formatarHoraCurta(aula.horaInicio)} · {aula.totalAlunos} alunos
                         </p>
                       </div>
-                    </div>
+                    </button>
                   ))
                 )}
               </div>

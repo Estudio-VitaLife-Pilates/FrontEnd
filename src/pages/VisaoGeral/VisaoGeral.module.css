@@ -479,11 +479,21 @@
   align-items: center;
   gap: 16px;
   padding: 16px 24px;
+  border: none;
   border-top: 1px solid rgba(0, 0, 0, 0.06);
+  background: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
 }
 
 .linha-aluno-recente:first-of-type {
   border-top: none;
+}
+
+.linha-aluno-recente:hover {
+  background: rgba(0, 0, 0, 0.025);
 }
 
 .avatar-recente {
@@ -547,11 +557,25 @@
   align-items: center;
   gap: 12px;
   padding: 12px 20px;
+  border: none;
   border-top: 1px solid rgba(0, 0, 0, 0.06);
+  background: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
 }
 
 .linha-agenda:first-of-type {
   border-top: none;
+}
+
+.linha-agenda:hover {
+  background: rgba(0, 0, 0, 0.025);
+}
+
+.linha-agenda:disabled {
+  cursor: default;
 }
 
 .hora-agenda {
