@@ -162,21 +162,6 @@
 }
 
 
-.container-esqueci-senha {
-  display: flex;
-  justify-content: flex-end;
-  width: 100%;
-  margin-top: -4px;
-}
-
-.link-esqueci-senha {
-  color: #d97960;
-  font-family: "Inter-Medium", sans-serif;
-  font-size: 13.12px;
-  font-weight: 500;
-  text-decoration: none;
-}
-
 
 .botao-enviar {
   background: #d97960;
