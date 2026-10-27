@@ -160,15 +160,6 @@ export function Login() {
                   </div>
                 </div>
 
-                <div className={styles["container-esqueci-senha"]}>
-                  <a
-                    href="#esqueci"
-                    className={styles["link-esqueci-senha"]}
-                  >
-                    Esqueci minha senha
-                  </a>
-                </div>
-
                 <button
                   type="submit"
                   className={styles["botao-enviar"]}
