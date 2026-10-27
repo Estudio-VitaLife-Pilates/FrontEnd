@@ -44,7 +44,14 @@ const NOMES_MES_CURTO = [
 ];
 
 const CORES_AVATAR = ["#e8d5d1", "#d4c5e2", "#f0e6e0", "#e6dff5"];
-const CORES_SERIE = ["#d97960", "#d4c5e2"];
+const CORES_SERIE = ["#d97960", "#9b7fc4"];
+
+function alturaBarra(valor, maximo) {
+  if (!valor || !maximo) return "0%";
+  // garante uma barra minimamente visível mesmo quando o valor é bem
+  // pequeno perto do máximo da série (ex: poucas canceladas vs. muitas realizadas)
+  return `max(${(valor / maximo) * 100}%, 4px)`;
+}
 
 function formatarPercentual(valor) {
   return `${Math.round((valor ?? 0) * 100)}%`;
@@ -119,7 +126,7 @@ function GraficoDesempenho({ dados, tipo }) {
                 <div
                   className={styles["grafico-barra"]}
                   style={{
-                    height: `${((item.aulasRealizadas ?? 0) / maximo) * 100}%`,
+                    height: alturaBarra(item.aulasRealizadas, maximo),
                     background: CORES_SERIE[0],
                   }}
                   title={`Realizadas: ${item.aulasRealizadas}`}
@@ -127,7 +134,7 @@ function GraficoDesempenho({ dados, tipo }) {
                 <div
                   className={styles["grafico-barra"]}
                   style={{
-                    height: `${((item.aulasCanceladas ?? 0) / maximo) * 100}%`,
+                    height: alturaBarra(item.aulasCanceladas, maximo),
                     background: CORES_SERIE[1],
                   }}
                   title={`Canceladas: ${item.aulasCanceladas}`}
