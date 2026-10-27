@@ -399,10 +399,6 @@ export default function Alunos() {
                 </div>
 
                 {alunosFiltrados.map((aluno) => {
-                  const planoAtivo = (aluno.planos ?? []).find(
-                    (p) => p.ativo
-                  );
-
                   const turmasDoAluno =
                     turmasPorAluno[aluno.id] ?? [];
 
@@ -438,8 +434,8 @@ export default function Alunos() {
                       </div>
 
                       <span className={styles["vencimento-aluno"]}>
-                        {planoAtivo
-                          ? formatarData(planoAtivo.dataFim)
+                        {aluno.vencimentoPlanoAtivo
+                          ? formatarData(aluno.vencimentoPlanoAtivo)
                           : "—"}
                       </span>
 

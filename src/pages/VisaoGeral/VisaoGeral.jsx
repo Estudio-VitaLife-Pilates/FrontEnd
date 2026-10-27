@@ -258,14 +258,14 @@ export default function VisaoGeral() {
 
               <div
                 className={styles["cartao-kpi"]}
-                title="Aulas desta semana já marcadas como ocorridas, de todas as programadas na semana."
+                title="Turmas distintas com pelo menos uma aula já encerrada nesta semana (considerando o horário de término de cada aula), de todas as turmas com aula agendada na semana."
               >
                 <div className={styles["kpi-icone"]}>
                   <FiCalendar size={16} />
                 </div>
-                <span className={styles["rotulo-kpi"]}>Aulas esta semana</span>
-                <span className={styles["valor-kpi"]}>{kpis.aulasSemana}</span>
-                <span className={styles["legenda-kpi"]}>de {kpis.aulasProgramadasSemana} programadas</span>
+                <span className={styles["rotulo-kpi"]}>Turmas realizadas</span>
+                <span className={styles["valor-kpi"]}>{kpis.turmasRealizadasSemana}</span>
+                <span className={styles["legenda-kpi"]}>{kpis.turmasAgendadasSemana} agendadas esta semana</span>
               </div>
 
               <div
