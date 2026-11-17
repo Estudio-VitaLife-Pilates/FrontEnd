@@ -20,9 +20,10 @@ def _build_url(host_url, path, params):
     return f"{host_url}{path}?{urlencode(params)}"
 
 
-def _fetch_json(url, token):
+def _fetch_json(url, token=None):
     request = urllib.request.Request(url)
-    request.add_header("Authorization", f"Bearer {token}")
+    if token:
+        request.add_header("Authorization", f"Bearer {token}")
     try:
         with urllib.request.urlopen(request, timeout=30) as response:
             return json.loads(response.read())
@@ -32,10 +33,11 @@ def _fetch_json(url, token):
 
 
 def main():
-    sonar_token = _required_env("SONAR_TOKEN")
+    sys.stdout.reconfigure(encoding="utf-8")
     project_key = _required_env("SONAR_PROJECT_KEY")
     pr_number = _required_env("PR_NUMBER")
     host_url = os.environ.get("SONAR_HOST_URL", "https://sonarcloud.io")
+    sonar_token = os.environ.get("SONAR_TOKEN")  # opcional: o projeto e publico
 
     issues_url = _build_url(
         host_url,

@@ -1,4 +1,4 @@
-name: SonarCloud Security Gate
+name: OWASP Security Summary
 
 on:
   pull_request:
@@ -10,42 +10,18 @@ permissions:
   pull-requests: write
 
 jobs:
-  sonarqube:
-    name: "[quality] - SonarCloud scan + security gate"
+  owasp-summary:
+    name: "[quality] - resumo de seguranca por categoria OWASP"
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install and build
-        run: |
-          npm ci --ignore-scripts
-          npm run build
-
-      - name: SonarCloud scan (waits for Quality Gate)
-        uses: SonarSource/sonarqube-scan-action@689fb39b34b9aa95ebc5f8f119343ddd51542402 # v4
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: >
-            -Dsonar.organization=${{ vars.SONAR_ORGANIZATION }}
-            -Dsonar.qualitygate.wait=true
 
       - name: OWASP PR summary
-        if: always()
         continue-on-error: true
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_PROJECT_KEY: vitalife-frontend
+          SONAR_PROJECT_KEY: Estudio-VitaLife-Pilates_FrontEnd
           PR_NUMBER: ${{ github.event.pull_request.number }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
