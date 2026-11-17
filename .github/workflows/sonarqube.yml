@@ -28,11 +28,11 @@ jobs:
 
       - name: Install and build
         run: |
-          npm ci
+          npm ci --ignore-scripts
           npm run build
 
       - name: SonarCloud scan (waits for Quality Gate)
-        uses: SonarSource/sonarqube-scan-action@v4
+        uses: SonarSource/sonarqube-scan-action@689fb39b34b9aa95ebc5f8f119343ddd51542402 # v4
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
