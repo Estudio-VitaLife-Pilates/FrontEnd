@@ -26,6 +26,10 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python3 scripts/owasp_pr_summary.py > /tmp/owasp_summary.md
+          echo "--- owasp_summary.md ($(wc -c < /tmp/owasp_summary.md) bytes) ---"
+          cat /tmp/owasp_summary.md
           if [ -s /tmp/owasp_summary.md ]; then
-            gh pr comment "$PR_NUMBER" --edit-last --body-file /tmp/owasp_summary.md
+            gh pr comment "$PR_NUMBER" --body-file /tmp/owasp_summary.md
+          else
+            echo "Arquivo vazio, nao ha o que comentar."
           fi
