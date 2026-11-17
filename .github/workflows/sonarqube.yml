@@ -42,9 +42,14 @@ jobs:
 
       - name: OWASP PR summary
         if: always()
+        continue-on-error: true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_PROJECT_KEY: vitalife-frontend
           PR_NUMBER: ${{ github.event.pull_request.number }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python3 scripts/owasp_pr_summary.py
+        run: |
+          python3 scripts/owasp_pr_summary.py > /tmp/owasp_summary.md
+          if [ -s /tmp/owasp_summary.md ]; then
+            gh pr comment "$PR_NUMBER" --edit-last --body-file /tmp/owasp_summary.md
+          fi

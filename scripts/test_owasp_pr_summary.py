@@ -17,6 +17,15 @@ class RequiredEnvTest(unittest.TestCase):
             self.assertEqual(owasp_pr_summary._required_env("SONAR_TOKEN"), "abc123")
 
 
+class BuildUrlTest(unittest.TestCase):
+    def test_encodes_query_parameters(self):
+        url = owasp_pr_summary._build_url(
+            "https://sonarcloud.io", "/api/issues/search", {"componentKeys": "a&b", "ps": 100}
+        )
+
+        self.assertEqual(url, "https://sonarcloud.io/api/issues/search?componentKeys=a%26b&ps=100")
+
+
 class FetchJsonTest(unittest.TestCase):
     def test_returns_parsed_json_on_success(self):
         fake_response = mock.MagicMock()

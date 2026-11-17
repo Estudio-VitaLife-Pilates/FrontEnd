@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Python (owasp-pr-summary scripts)
+__pycache__/
+*.pyc

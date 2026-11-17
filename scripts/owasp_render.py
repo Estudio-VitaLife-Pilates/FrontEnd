@@ -15,16 +15,17 @@ OWASP_NAMES = {
 def _location(entry):
     component = entry.get("component", "")
     line = entry.get("line")
-    return f"`{component}`:{line}" if line else f"`{component}`"
+    suffix = f":{line}" if line else ""
+    return f"`{component}`{suffix}"
 
 
 def render_owasp_summary(issues_json, hotspots_json):
-    issues_total = issues_json.get("total", 0)
-    hotspots_total = hotspots_json.get("paging", {}).get("total", 0)
+    issues = issues_json.get("issues", [])
+    hotspots = hotspots_json.get("hotspots", [])
 
     lines = ["## Resumo de seguranca (OWASP) deste PR", ""]
 
-    if issues_total == 0 and hotspots_total == 0:
+    if not issues and not hotspots:
         lines.append("Nenhum achado novo de segurança (OWASP) neste PR.")
         return "\n".join(lines)
 
@@ -45,7 +46,6 @@ def render_owasp_summary(issues_json, hotspots_json):
             lines.append(f"| {OWASP_NAMES.get(code, code)} | {count} |")
         lines.append("")
 
-    issues = issues_json.get("issues", [])
     if issues:
         lines.append("### Detalhe das vulnerabilidades novas")
         lines.append("")
@@ -55,7 +55,6 @@ def render_owasp_summary(issues_json, hotspots_json):
             lines.append(f"- **{severity}** {message} ({_location(issue)})")
         lines.append("")
 
-    hotspots = hotspots_json.get("hotspots", [])
     if hotspots:
         lines.append("### Security Hotspots a revisar")
         lines.append("")
