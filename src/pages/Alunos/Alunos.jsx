@@ -8,6 +8,7 @@ import {
 } from "../../api/alunos";
 import { listarAlunosDaTurma, listarTurmas } from "../../api/turmas";
 import { listarAlunosAguardandoReagendamento } from "../../api/aulas";
+import { buscarEnderecoPorCep } from "../../api/cep";
 import {
   FiPlus,
   FiSearch,
@@ -46,6 +47,13 @@ const FORM_VAZIO = {
   email: "",
   dataNascimento: "",
   fichaAnamnese: "",
+  cep: "",
+  logradouro: "",
+  bairro: "",
+  cidade: "",
+  estado: "",
+  numero: "",
+  complemento: "",
 };
 
 export default function Alunos() {
@@ -76,6 +84,9 @@ export default function Alunos() {
   const [modalAberto, setModalAberto] = useState(false);
   const [form, setForm] = useState(FORM_VAZIO);
   const [enviando, setEnviando] = useState(false);
+  const [consultandoCep, setConsultandoCep] = useState(false);
+  const [erroCep, setErroCep] = useState(null);
+  const [cepValido, setCepValido] = useState(false);
 
   // Carrega alunos e turmas da página solicitada
   function carregarTudo(paginaAtual = pagina) {
@@ -198,10 +209,42 @@ export default function Alunos() {
       }));
   }
 
+  async function consultarCep() {
+    setErroCep(null);
+    setCepValido(false);
+    const cepLimpo = String(form.cep || "").replace(/\D/g, "");
+    if (cepLimpo.length !== 8) {
+      setErroCep("Informe um CEP válido com 8 dígitos.");
+      return;
+    }
+    setConsultandoCep(true);
+    try {
+      const endereco = await buscarEnderecoPorCep(cepLimpo);
+      setForm((atual) => ({
+        ...atual,
+        cep: endereco.cep,
+        logradouro: endereco.logradouro,
+        bairro: endereco.bairro,
+        cidade: endereco.cidade,
+        estado: endereco.estado,
+        complemento: endereco.complemento || atual.complemento,
+      }));
+      setCepValido(true);
+    } catch (e) {
+      setErroCep(e.message || "CEP inválido.");
+      setCepValido(false);
+    } finally {
+      setConsultandoCep(false);
+    }
+  }
+
   // Cadastro de aluno
   function executarCadastro(event) {
     event.preventDefault();
     setEnviando(true);
+
+    const temEndereco = [form.cep, form.logradouro, form.bairro, form.cidade, form.estado, form.numero, form.complemento]
+      .some((v) => String(v || "").trim() !== "");
 
     cadastrarAluno({
       nome: form.nome,
@@ -210,6 +253,15 @@ export default function Alunos() {
       email: form.email || null,
       dataNascimento: form.dataNascimento || null,
       fichaAnamnese: form.fichaAnamnese || null,
+      endereco: temEndereco ? {
+        cep: form.cep || null,
+        logradouro: form.logradouro || null,
+        bairro: form.bairro || null,
+        cidade: form.cidade || null,
+        estado: form.estado || null,
+        numero: form.numero || null,
+        complemento: form.complemento || null,
+      } : null,
     })
       .then(() => {
         fecharModal();
@@ -642,7 +694,42 @@ export default function Alunos() {
                 />
               </div>
 
+                            <div className={styles["grupo-campo"]}>
+                <label className={styles["rotulo-campo"]} htmlFor="cep">CEP</label>
+                <div style={{display:'flex', gap:'8px'}}>
+                  <input id="cep" className={styles["input-modal"]} value={form.cep} onChange={setValorCampo("cep")} placeholder="00000-000" />
+                  <button type="button" className={styles["botao-salvar"]} onClick={consultarCep} disabled={consultandoCep}>
+                    {consultandoCep ? "Buscando..." : "Buscar CEP"}
+                  </button>
+                </div>
+                {erroCep && <p className={styles["mensagem-erro"]}>{erroCep}</p>}
+                {cepValido && <p style={{color:'green', marginTop:'4px'}}>CEP validado. Confira o endereço.</p>}
+              </div>
               <div className={styles["grupo-campo"]}>
+                <label className={styles["rotulo-campo"]} htmlFor="logradouro">Logradouro</label>
+                <input id="logradouro" className={styles["input-modal"]} value={form.logradouro} onChange={setValorCampo("logradouro")} />
+              </div>
+              <div className={styles["grupo-campo"]}>
+                <label className={styles["rotulo-campo"]} htmlFor="bairro">Bairro</label>
+                <input id="bairro" className={styles["input-modal"]} value={form.bairro} onChange={setValorCampo("bairro")} />
+              </div>
+              <div className={styles["grupo-campo"]}>
+                <label className={styles["rotulo-campo"]} htmlFor="cidade">Cidade</label>
+                <input id="cidade" className={styles["input-modal"]} value={form.cidade} onChange={setValorCampo("cidade")} />
+              </div>
+              <div className={styles["grupo-campo"]}>
+                <label className={styles["rotulo-campo"]} htmlFor="estado">Estado</label>
+                <input id="estado" className={styles["input-modal"]} value={form.estado} onChange={setValorCampo("estado")} />
+              </div>
+              <div className={styles["grupo-campo"]}>
+                <label className={styles["rotulo-campo"]} htmlFor="numero">Número</label>
+                <input id="numero" className={styles["input-modal"]} value={form.numero} onChange={setValorCampo("numero")} />
+              </div>
+              <div className={styles["grupo-campo"]}>
+                <label className={styles["rotulo-campo"]} htmlFor="complemento">Complemento</label>
+                <input id="complemento" className={styles["input-modal"]} value={form.complemento} onChange={setValorCampo("complemento")} />
+              </div>
+<div className={styles["grupo-campo"]}>
                 <label
                   className={styles["rotulo-campo"]}
                   htmlFor="fichaAnamnese"
