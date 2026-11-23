@@ -29,6 +29,7 @@ import {
   FiArrowLeft,
   FiPhone,
   FiMail,
+  FiMapPin,
   FiCreditCard,
   FiUserX,
   FiUserCheck,
